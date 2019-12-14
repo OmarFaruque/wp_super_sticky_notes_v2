@@ -1,0 +1,736 @@
+#wpadminbar #wp-admin-bar-admin_bar_custom_menu .ab-icon:before {
+    content: "\f163";
+    top: 3px;
+}
+li#wp-admin-bar-admin_bar_custom_menu2 {
+    display: none;
+}
+@media screen and (max-width: 782px){
+	#wpadminbar li#wp-admin-bar-admin_bar_custom_menu{
+		display: block;
+	}
+	
+	#wpadminbar #wp-admin-bar-admin_bar_custom_menu > .ab-item {
+    	text-indent: 100%;
+    	white-space: nowrap;
+    	overflow: hidden;
+    	width: 52px;
+    	padding: 0;
+    	color: #999;
+    	position: relative;
+	}
+	
+	#wpadminbar #wp-admin-bar-admin_bar_custom_menu > .ab-item::before {
+    	display: block;
+    	text-indent: 0;
+    	font: 400 32px/1 dashicons;
+    	content: "\f163";
+    	top: 7px;
+    	width: 52px;
+    	text-align: center;
+    	-webkit-font-smoothing: antialiased;
+    	-moz-osx-font-smoothing: grayscale;
+	}
+}
+
+/*  */
+/* .active-area {
+    border: 1px solid #999;
+} */
+
+sub.note-question {
+	top: -1.5ex;
+	cursor: pointer;
+}
+.note-question-icon-button {
+    background-image: url(images/help.png);
+    background-repeat: no-repeat;
+    width: 23px;
+    height: 25px;
+    background-color: #ffff;
+    font-style: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: inline-block;
+    text-rendering: auto;
+    font-weight: normal;
+    position: absolute;
+    top: -18px;
+    left: -12px;
+}
+/* note page design */
+.sticky-note-theme {
+    background-color: #FFFBE2;
+    height: 260px;
+    position: relative;
+    width: 350px;
+    overflow: hidden;
+}
+.qtip-content {
+    padding: 0px;
+    overflow: unset;
+}
+.qtip-default {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    background-color: transparent;
+    color: #555;
+}
+.note-top-option {
+    left: 0px;
+    height: 58px;
+    right: 0px;
+    top: 0px;
+    background-color: #F0B30C;
+    color: white;
+    overflow: hidden;
+    width: 100%;
+}
+.note-plus-button {
+    float: left;
+    width: 70%;
+    overflow: hidden;
+    height: 100%;
+}
+.note-color-button {
+    float: left;
+    width: 15%;
+    overflow: hidden;
+    height: 100%;
+}
+.note-exest-button {
+    float: left;
+    width: 15%;
+    overflow: hidden;
+    height: 100%;
+}
+textarea.sticky-note-text-editor {
+    resize: none;
+    height: 77%;
+    background-color: #FFFBE2;
+    font-size: 16px;
+}
+.note-top-option-color {
+    left: 0px;
+    height: 58px;
+    right: 0px;
+    top: 0px;
+    background-color: #F0B30C;
+    color: white;
+    overflow: hidden;
+    width: 100%;
+}
+.color-option {
+    float: left;
+    overflow: hidden;
+    height: 100%;
+    width: 14.28%;
+}
+.color-1 {
+    background-color: #F0B30C;
+    cursor: pointer;
+}
+.color-2 {
+    background-color: #9BDBF6;
+    cursor: pointer;
+}
+.color-3 {
+    background-color: #B45FF6;
+    cursor: pointer;
+}
+.color-4 {
+    background-color: #F87098;
+    cursor: pointer;
+}
+.color-5 {
+    background-color: #3FD981;
+    cursor: pointer;
+}
+.color-6 {
+    background-color: #AEAEAE;
+    cursor: pointer;
+}
+.color-7 {
+    background-color: #686868;
+    cursor: pointer;
+}
+.note-plus-icon-button {
+    background-image: url(images/plus.png);
+    background-repeat: no-repeat;
+    width: 26px;
+    margin: 16px;
+    height: 26px;
+    cursor: pointer;
+}
+.note-color-icon-button{
+    background-image: url(images/menu.png);
+    background-repeat: no-repeat;
+    width: 26px;
+    margin: 16px;
+    height: 26px;
+    cursor: pointer;
+}
+.note-exest-icon-button{
+    background-image: url(images/close.png);
+    background-repeat: no-repeat;
+    width: 26px;
+    margin: 16px;
+    height: 26px;
+    cursor: pointer;
+}
+textarea.sticky-note-text-editor:focus {
+    outline-color: #6d6d6d;
+}
+.br-replace{
+    display:block;
+    margin: -20px;
+}
+/* user css */
+
+
+.super-sticky-notes {
+    margin: 50px;
+}
+.sticky-setting-title {
+    margin-bottom: 50px;
+    margin-left: 20px;
+}
+.setting-icon h1 {
+    margin-left: 45px;
+    color: #707070;
+}
+.setting-icon:before {
+	content: '';
+    background-image: url(images/settings.png);
+    background-repeat: no-repeat;
+    width: 36px;
+    height: 36px;
+    position: absolute;
+	margin-top: 10px;
+}
+.super-sticky-notes .tab {
+    padding-left: 20px;
+    overflow: hidden;
+    float: left;
+}
+.super-sticky-notes .tabcontent {
+    display: none;
+    background-color: #fff;
+}
+button.tablinks.active {
+    color: #098686 !important;
+}
+button.tablinks {
+    background-color: inherit !important;
+    border: none !important;
+    outline: none !important;
+    cursor: pointer;
+    transition: 0.3s !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #707070 !important;
+    float: left !important;
+  }
+.tab-icons:before {
+    content: '\|';
+    font-size: 24px;
+    float: left;
+    margin-top: 4px;
+}
+table.sticky-notes-data-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+tr.note-heading-wrapper th {
+    color: #878787;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 2px solid #f1f1f1;
+}
+table.sticky-notes-data-table td, th {
+    text-align: center;
+    padding: 10px;
+    vertical-align: inherit;
+}
+table.sticky-notes-data-table th {
+    padding-bottom: 20px;
+}
+td.note-title {
+    color: #04B89B;
+}
+table.sticky-notes-data-table button.approved {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #04B89B;
+    float: left;
+}
+table.sticky-notes-data-table button.disapproved {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #EE083D;
+    float: left;
+}
+table.sticky-notes-data-table button.approved:after {
+    content: "\|";
+    margin-left: 10px;
+    color: black;
+}
+table.sticky-notes-data-table button.approvedd {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #04B89B;
+}
+table.sticky-notes-data-table button.disapprovedd {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #EE083D;
+}
+table.sticky-notes-data-table button.reply {
+    cursor: pointer;
+    color: #fff !important;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: #469710;
+    padding: 8px 22px;
+    font-size: 15px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+table.sticky-notes-data-table  .disapproved-reply {
+    cursor: not-allowed;
+    color: #fff !important;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: #E10D46;
+    padding: 8px 22px;
+    font-size: 15px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+
+
+/**
+ * Overlay
+ * -- only show for tablet and up
+ */
+ @media only screen and (min-width: 40em) {
+    .modal-overlay {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center;
+      -webkit-box-pack: center;
+          -ms-flex-pack: center;
+              justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      background-color: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      visibility: hidden;
+      -webkit-backface-visibility: hidden;
+              backface-visibility: hidden;
+      -webkit-transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1), visibility 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+      transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1), visibility 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+  /**
+   * Modal
+   */
+  .modal {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    position: relative;
+    margin: 0 auto;
+    background-color: #fff;
+    width: 600px;
+    max-width: 75rem;
+    min-height: 20rem;
+    padding: 1rem;
+    border-radius: 3px;
+    opacity: 0;
+    overflow-y: auto;
+    visibility: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    -webkit-transform: scale(1.2);
+            transform: scale(1.2);
+    -webkit-transition: all 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: all 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+  }
+  .modal .close-modal {
+    position: absolute;
+    cursor: pointer;
+    top: 5px;
+    right: 15px;
+    opacity: 0;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    -webkit-transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1), -webkit-transform 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1), -webkit-transform 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1), transform 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1), transform 0.6s cubic-bezier(0.55, 0, 0.1, 1), -webkit-transform 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    -webkit-transition-delay: 0.3s;
+            transition-delay: 0.3s;
+  }
+  .modal .close-modal svg {
+    width: 1.75em;
+    height: 1.75em;
+  }
+  .modal .modal-content {
+    opacity: 0;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    -webkit-transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    transition: opacity 0.6s cubic-bezier(0.55, 0, 0.1, 1);
+    -webkit-transition-delay: 0.3s;
+            transition-delay: 0.3s;
+  }
+  .modal.active {
+    visibility: visible;
+    opacity: 1;
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+  .modal.active .modal-content {
+    opacity: 1;
+  }
+  .modal.active .close-modal {
+    -webkit-transform: translateY(10px);
+            transform: translateY(10px);
+    opacity: 1;
+  }
+  
+  /**
+   * Mobile styling
+   */
+  @media only screen and (max-width: 39.9375em) {
+    h1 {
+      font-size: 1.5rem;
+    }
+  
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 0;
+      -webkit-transform: scale(1.1);
+              transform: scale(1.1);
+      padding: 0 !important;
+    }
+  
+    .close-modal {
+      right: 20px !important;
+    }
+  }
+/* pop-up end */
+
+.note-reply-page input[type=text], select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    resize: vertical;
+  }
+
+/* modal css */
+  .modal-content h3 {
+    text-align: left;
+    color: #A1A1A1;
+    font-size: 28px;
+    font-weight: 400;
+}
+.note-reply-page {
+    width: 540px;
+}
+.note-reply-page input.note-reply {
+    cursor: pointer;
+    color: #fff !important;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: #E10D46;
+    padding: 8px 36px;
+    font-size: 20px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+    margin-bottom: 20px;
+}
+.note-reply-page .note-reply{
+    float: right;
+}
+.note-reply-page textarea {
+    resize: none;
+    width: 100%;
+    background: #fff;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 6px;
+    margin-bottom: 16px;
+}
+.next-conversation p {
+    float: left;
+    color: #737373;
+    font-size: 14px;
+}
+/* slider button css */
+.next-conversation .switch {
+    float: left;
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    margin-left: 10px;
+    margin-top: 8px;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #E65480;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #E65480;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  /* button css end */
+td.note-class-view {
+    width: 20%;
+}
+td.note-status-view {
+    width: 18%;
+}
+.note-disapproved {
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #EE083D;
+}
+.tab-search button.tab-search-button {
+    cursor: pointer;
+    color: #fff !important;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: #AF0C38;
+    padding: 8px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+.tab-search {
+    float: right;
+    padding-right: 30px;
+}
+.sticky-top-bar .tab-icons {
+    float: left;
+}
+.sticky-top-bar {
+    width: 100%;
+    overflow: hidden;
+}
+.sticky-top-bar input[type="text"] {
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: 400;
+    border-radius: 6px;
+    margin-right: 8px;
+}
+.tab button {
+    padding: 10px;
+}
+tr.note-heading-wrapper th {
+    text-align: center;
+}
+.disapproved {
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #EE083D;
+}
+.approved {
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #04B89B;
+}
+.setting-icon h1:after {
+    content: '';
+    background-image: url(images/notification.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    margin-top: -5px;
+    opacity: 1;
+}
+.note-reply-page {
+    padding: 5px 20px;
+}
+.modal-content h3 {
+    padding-top: 20px;
+    padding-left: 20px;
+}
+button.note-reply {
+    
+    z-index: 0;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: #fff !important;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 8px 22px;
+    font-size: 15px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+.note-top-option-comment-list {
+    height: 58px;
+    top: 58px;
+    background: #fff;
+    width: 100%;
+    position: absolute;
+}
+.note-top-option-delete-comment {
+    height: 58px;
+    top: 116px;
+    background: #fff;
+    width: 100%;
+    position: absolute;
+}
+p.note-go-to-comment {
+    color: #727272;
+    font-size: 20px;
+    padding-top: 20px;
+    padding-left: 52px;
+    cursor: pointer;
+}
+p.note-go-to-comment:before {
+    content: '';
+    background-image: url(images/list.png);
+    background-repeat: no-repeat;
+    width: 36px;
+    height: 36px;
+    position: absolute;
+    margin-left: -32px;
+    margin-top: -4px;
+}
+p.note-top-option-delete-all-comment {
+    color: #F90A0A;
+    font-size: 20px;
+    padding-top: 20px;
+    padding-left: 52px;
+    cursor: pointer;
+}
+p.note-top-option-delete-all-comment:before {
+    content: '';
+    background-image: url(images/delete.png);
+    background-repeat: no-repeat;
+    width: 36px;
+    height: 36px;
+    position: absolute;
+    margin-left: -32px;
+    margin-top: -4px;
+}
