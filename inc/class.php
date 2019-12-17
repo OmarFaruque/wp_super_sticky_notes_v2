@@ -45,7 +45,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             add_filter( 'the_content', array($this, 'filter_the_content_in_the_main_loop') );
 
             // Shortcode for frontend use
-            add_shortcode( 'user_question_lists', array($this, 'larasoftbd_question_lists_shortcode') );
+            add_shortcode( 'all-sticky-comments', array($this, 'larasoftbd_question_lists_shortcode') );
             
         }
 
@@ -59,6 +59,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         // Add Theme Options to Admin Bar Menu
         function sticky_notes_admin_bar_menu_function() {
             global $wp_admin_bar;
+            $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $wp_admin_bar->add_menu( array(
                 'id'        => 'admin_bar_custom_menu',
                 'title'     => '<span class="ab-icon"></span>'.__( 'Sticky Notes', 'some-textdomain' ),
@@ -74,7 +75,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 'parent'    => 'admin_bar_custom_menu',
                 'id'        => 'note_old_comments',
                 'title'     => __( 'Old Comments', 'some-textdomain' ),
-                'href'      => '#'
+                'href'      => $oldCommentUrl
             ) );
 
             $wp_admin_bar->add_menu( array(
@@ -90,8 +91,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         */
         function larasoftNote_backend_script(){
             
-            wp_enqueue_style( 'larasoftNoteCSS', $this->plugin_url . 'asset/css/larasoftbd_note_backend.css', array(), true, 'all' );
-            wp_enqueue_script( 'larasoftNote', $this->plugin_url . 'asset/js/larasoftbd_note_backend.js', array(), true );
+            wp_enqueue_style( 'larasoftNoteCSS', $this->plugin_url . 'asset/css/note_backend.css', array(), true, 'all' );
+            wp_enqueue_script( 'larasoftNote', $this->plugin_url . 'asset/js/ls_note_backend.js', array(), true );
             //ajax
             wp_localize_script( 'larasoftNote', 'notesAjax', admin_url( 'admin-ajax.php' ));
 
@@ -122,14 +123,15 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $next_conv_alloweds = array();
             foreach($next_conv_allowed as $next_conv) $next_conv_alloweds[$next_conv->id] = $next_conv->next_conv_allowed;
 
-            wp_enqueue_style( 'larasoftbd_NotetCSS', $this->plugin_url . 'asset/css/larasoftbd_note_frontend.css', array(), true, 'all' );
-            wp_enqueue_script('larasoftbd_NoteJS', $this->plugin_url . 'asset/js/larasoftbd_note_frontend.js', array(), time(), true);
-
+            wp_enqueue_style( 'larasoftbd_NotetCSS', $this->plugin_url . 'asset/css/note_frontend.css', array(), true, 'all' );
+            
             // Add the styles first, in the <head> (last parameter false, true = bottom of page!)
             wp_enqueue_style('qtip', $this->plugin_url . 'asset/qtip_asset/jquery.qtip.min.css', null, false, false);
 
             // Not using imagesLoaded? :( Okay... then this.
-            wp_enqueue_script('qtip', $this->plugin_url . 'asset/qtip_asset/jquery.qtip.min.js', array('jquery'), false, true);
+            
+            wp_enqueue_script('larasoftbd_NoteJS', $this->plugin_url . 'asset/js/ls_note_frontend.js', array('jquery'), time(), true);
+            wp_enqueue_script('qtipjs', $this->plugin_url . 'asset/qtip_asset/jquery.qtip.min.js', array(), time(), true);
             //ajax
             wp_localize_script( 'larasoftbd_NoteJS', 'notesAjax', 
                 array(
@@ -137,8 +139,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'current_page_id' => $post->ID,
                     'user_id' => get_current_user_id(),
                     'title' => get_the_title(),
-                    'nottopcolor' => $noteoptions->topoption,
-                    'notetextbg' => $noteoptions->texteditorbg,
+                    'nottopcolor' => (isset($noteoptions->topoption)) ? $noteoptions->topoption : '',
+                    'notetextbg' => (isset($noteoptions->texteditorbg)) ? $noteoptions->texteditorbg : '',
                     'textval' => $note_valuess,
                     'submitorreply' => $next_conv_alloweds
                 )
@@ -161,15 +163,16 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 parent_class VARCHAR(50) NOT NULL,
                 current_Class VARCHAR(50) NOT NULL,
                 note_position INT(20) NOT NULL,
-                note_values TEXT,
+                note_values TEXT NOT NULL,
                 insert_time TIMESTAMP,
                 title VARCHAR(100) NOT NULL, 
-                note_color VARCHAR(10),
-                note_status VARCHAR(20),
-                note_reply TEXT,
-                note_repliedOn VARCHAR(20),
-                next_conv_allowed INT(5),
-                parent_id INT(20),
+                note_color VARCHAR(10) NOT NULL,
+                note_status VARCHAR(20) NOT NULL,
+                note_reply TEXT NOT NULL,
+                note_repliedOn VARCHAR(20) NOT NULL,
+                next_conv_allowed INT(5) NOT NULL,
+                parent_id INT(20) NOT NULL,
+                desable INT(5) NOT NULL DEFAULT 0,
                 UNIQUE KEY id (id)
                 ) $charset_collate;";
         
@@ -253,7 +256,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         
         
         function filter_the_content_in_the_main_loop( $content ) {
-        
+            if(get_option( 'visitor_allowed', 1 ) == 0){
+                return $content;
+            }
+            
             // Check if we're inside the main loop in a single post page.
             //if ( is_single() && in_the_loop() && is_main_query() ) {
                 global $wpdb;
@@ -276,39 +282,35 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     { 
                         $all_current_Classs[] = $value->current_Class;
                     }
-                    // echo "<pre>";
-                    // print_r($all_current_Classs);
-                    // echo "</pre>";
 
+                    $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
                     $content = '<div class="supper_sticky_note">' . $content . '</div>';
 
                     $DOM = new DOMDocument();
                     $DOM->loadHTML($content);
                     $list = $DOM->getElementsByTagName('p');
                     $i = 0;
+
                     foreach($list as $p){
                         $p->setAttribute('class', 'p-class'.$i++);
                     }
                     $DOM=$DOM->saveHTML();
                     $content = $DOM;
 
-
-                    // $needle = '<p class="p-class0">';
-                    // if (strpos($content,$needle) !== false) {
-                    //     echo "yes <br>";
-                    // }else{
-                    //     echo 'no';
-                    // }
-
+                    // Add new data
+                    $doc = new DOMDocument();
+                    $doc->loadHTML($content);
+                    $xpath = new DOMXPath($doc);
+                   
                     for ($x = 0; $x < count($all_current_Classs); $x++) {
 
-                        $doc = new DOMDocument();
-                        $doc->loadHTML($content);
-                        $xpath = new DOMXPath($doc);
-
+                     
+                        
                         $classname= $all_current_Classs[$x];
-                        //echo '<pre>'. $classname .'</pre>';
+                        
                         $elements = $xpath->query("//p[@class='$classname']");
+                       
+                        
                         $real_values= $elements->item(0)->nodeValue;
 
                         $all_note_position = $wpdb->get_results("SELECT `note_position` FROM $table_name WHERE `current_Class` = '".$classname."' AND `user_id` = $user_id AND `page_id` = $current_page_id ORDER BY `note_position`", OBJECT);
@@ -328,33 +330,34 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
                         $my_html = 0;
                         foreach ($all_note_positions as $single_positions) {
-                            $data_id = $wpdb->get_row("SELECT `id` FROM $table_name WHERE `current_Class` = '".$classname."' AND `user_id` = $user_id AND `page_id` = $current_page_id AND `note_position` = $single_positions ", OBJECT);
+                            $data_id = $wpdb->get_row("SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `current_Class` = '".$classname."' AND `user_id` = $user_id AND `page_id` = $current_page_id AND `note_position` = $single_positions ", OBJECT);
                             $data_ids = json_decode(json_encode($data_id), true);
+                            // echo 'Ids<br/><pre>';
+                            // print_r($data_ids);
+                            // echo '</pre>';
+
                             $data_idd = $data_ids['id'];
+                            $dataActive = ($data_ids['next_conv_allowed'] == 1) ? 'allowed' : '';
 
                             $single_position = $single_positions + $my_html;
                             $actual_value_text = array_slice($real_values_in_array, 0, $single_position, true) +
-                            array("my_html'.$my_html.'" => "<sub data-current='$classname' data-id='$data_idd' data-position='$single_positions' class='note-question'><span class='note-question-icon-button'></span></sub>") +
+                            array("my_html'.$my_html.'" => "<sub data-current='$classname' data-id='$data_idd' data-position='$single_positions' class='note-question d-none ".$dataActive." '><span class='note-question-icon-button old'></span></sub>") +
                             array_slice($real_values_in_array, $single_position, count($real_values_in_array) - 1, true) ;
 
                             $real_values_in_array = $actual_value_text;
                             $my_html++;
-                            //echo $my_html .'<br>';
                         }
                         $actual_value_texts = implode( $actual_value_text );
 
-                        array_push( $show_values , $actual_value_texts);
+                        // $show_values[$classname] = $actual_value_texts;
+                        $elements->item(0)->nodeValue = '';
+                        $f = $doc->createDocumentFragment();
+                        $f->appendXML($actual_value_texts);
+                        $elements->item(0)->appendChild($f);
                     }
 
-
-                    // $DOM=$DOM->saveHTML();
-                    // $content = $DOM;
-                    
-                    echo '<pre>';
-                    print_r($show_values);
-                    echo '</pre>';
-
-                    //return $show_values;
+                    $DOM=$doc->saveHTML();
+                    $content = $DOM;
 
                     
                 }
@@ -369,10 +372,16 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     }
                     $DOM=$DOM->saveHTML();
                     $content = $DOM;
+                    
                 }
             //}
         
             return $content;
+        }
+
+        // update Settings
+        public function updateSettings($data){
+            update_option( 'allcommentpage', $data );
         }
 
 
@@ -425,17 +434,15 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     $option_name = 'visitor_allowed' ;
                     $new_value = 'red';
                     if ( get_option( $option_name ) !== false ) {
-                    
                         update_option( $option_name, $visitor_allowed );
-    
                     } else {
-                    
                         $deprecated = null;
                         $autoload = 'no';
                         add_option( $option_name, $visitor_allowed, $deprecated, $autoload );
                     }
             }
 
+            if(isset($_POST['allcommentpage'])) $this->updateSettings($_POST['allcommentpage']);
 
             ?>
             <div class="super-sticky-notes">
@@ -444,7 +451,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     <div class="tab">
                         <button class="tablinks active" onclick="openTab(event, 'all')"><?php _e('All', 'wp_super_sticky_notes'); ?></button><div class="tab-icons"></div>
                         <button class="tablinks" onclick="openTab(event, 'approved')"><?php _e('Approved', 'wp_super_sticky_notes'); ?></button><div class="tab-icons"></div>
-                        <button class="tablinks" onclick="openTab(event, 'disapproved')"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></button>
+                        <button class="tablinks" onclick="openTab(event, 'disapproved')"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></button><div class="tab-icons"></div>
+                        <button class="tablinks" onclick="openTab(event, 'settings')"><?php _e('Settings', 'wp_super_sticky_notes'); ?></button>
                     </div>
                     <div class="tab-search">
                         <form method="POST">
@@ -780,6 +788,39 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
                 </div>
 
+
+                <!-- Settings -->
+                <div id="settings" class="tabcontent">
+                    <div class="settingsInner">
+                        <form id="settingsForm" method="post" action="">
+                            <table class="sticky-notes-data-table">
+                                <tbody>
+                                    <tr>
+                                        <th class="text-left"><?php _e('All Comment\'s page', 'wp_super_sticky_notes' ); ?></th>
+                                        <td class="text-left">
+                                            <?php $allpages = get_all_page_ids(); ?>
+                                            <select name="allcommentpage" class="form-control" id="allcommentpage">
+                                                <?php   foreach( $allpages as $sp):
+                                                    $selected = (get_option( 'allcommentpage') == $sp ) ? 'selected' : '';
+                                                    ?>
+                                                    <option <?php echo $selected; ?> value="<?php echo $sp; ?>"><?php echo get_the_title($sp); ?></option>
+                                                <?php endforeach; ?>
+
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                            <th class="text-left"><?php _e('All Comment\'s Shortcode', 'wp_super_sticky_notes'); ?></th>
+                                            <td class="text-left"><?php echo '[all-sticky-comments]'; ?></td>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                </div>
+
+
                 <div class="visitors-conversation">
                     <form method="POST">
                         <div class="visitor-conversation">
@@ -793,6 +834,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         </div>
                     </form>
                 </div>
+
 
             </div>
             <?php

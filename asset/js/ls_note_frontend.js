@@ -1,7 +1,8 @@
-
-   
    jQuery(document).ready(function($){
-   
+    "use strict";
+
+    // Bydefault statid inactive
+    localStorage.setItem("notestatus", 'in-active');
     //add class
     jQuery(document.body).on('click', 'li#wp-admin-bar-add_sticky_notes a', function(){
         jQuery('body').toggleClass('note_additable');
@@ -13,35 +14,56 @@
         var e = document.createElement('div');
         e.innerHTML = input;
         return e.childNodes[0].nodeValue;
-      }
-
-    $(document).ready(function(){
-        var str = $(".supper_sticky_note").html();
-        var regex = /<br\s*[\/]?>/gi;
-        $(".supper_sticky_note").html(str.replace(regex, "<div class='br-replace'></div><p>"));
-    });
+    }
 
 
-    jQuery(document.body).one('click','.supper_sticky_note p', function(){
 
+
+    jQuery(document.body).on('click','.supper_sticky_note p', function(evt){
+        var status = localStorage.getItem("notestatus");
+        if(jQuery(this).find('sub.new').length == 0 && evt.target.tagName != 'SPAN' && status == 'active'){
         var content = jQuery(this);
-        var thishtml = jQuery(this).html();
+        var parentClass = $(this).parent().attr('class');
+        var currentClass = $(this).attr('class');
         let position = window.getSelection().focusOffset;
 
-        String.prototype.splice = function(idx, rem, str) {
-            return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
-        };
+        var myAnchorNodeValue = window.getSelection().anchorNode.nodeValue;
+        var myAnchorOffset = window.getSelection().anchorOffset;
+        var myFocusOffset =  window.getSelection().focusOffset;
+        var d = document.createDocumentFragment(),
+        myFocusNodeLength = window.getSelection().focusNode.nodeValue.length;
+        var newCount = myAnchorNodeValue.slice(0, myAnchorOffset);
+        position = newCount.length;
 
-        parentClass = $(this).parent().attr('class');
-        currentClass = $(this).attr('class');
+        window.getSelection().anchorNode.nodeValue = myAnchorNodeValue.slice(0, myAnchorOffset) + '<sub class="new stickyQuestion" data-parent="'+parentClass+'" data-current="'+currentClass+'" data-position="'+position+'" class="note-question"><span class="note-question-icon-button">' + myAnchorNodeValue.slice(myAnchorOffset);
+    
+        
+        var myFocusNodeValue = window.getSelection().focusNode.nodeValue;
+    
+        if(window.getSelection().focusNode.nodeValue.length - myFocusNodeLength > 0) {
+            myFocusOffset += window.getSelection().focusNode.nodeValue.length - myFocusNodeLength;
+        }
+    
+        window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + '</span></sub>' + myFocusNodeValue.slice(myFocusOffset);
 
-        var result = thishtml.splice(position, 0, '<sub data-parent="'+parentClass+'" data-current="'+currentClass+'" data-position="'+position+'" class="note-question"><span class="note-question-icon-button"></span></sub>');
+        var thishtml = jQuery(this).html();
         
-        content.html(result);
-        var dynamici = jQuery(content).find('.note-question-icon-button');
-        
-        addQtip(jQuery(dynamici));
+        var selection = window.getSelection();
+            var result = thishtml;
+            result = decodeHtml(result);
+
+            content.html(result);
+            jQuery(content).find('.note-question-icon-button').each(function(k, v){
+                addQtip(jQuery(v));
+            });
+        }
     });
+    
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
     
 
     function ajaxfuncton(parntclass, currentClass, text_content, position, data_id){
@@ -88,9 +110,10 @@
     // tooltip is now possible for interaction with it's contents.
     // setTimeout(function(){
     // jQuery(document.body).on('click', 'i.fas.fa-question', function(){
-    $('.note-question-icon-button').each(function () {
+    jQuery('.note-question-icon-button').each(function () {
         addQtip(jQuery(this));
     });
+    
 
 
     function addQtip(element){
@@ -98,12 +121,17 @@
         var position = element.closest('sub').data('position');
         var currentClass = element.closest('sub').data('current');
         var data_id = element.closest('sub').data('id');
+        var status = (element.hasClass('old')) ? 'old' : 'new';
+        
         var textdata = (typeof notesAjax.textval[data_id] != 'undefined') ? notesAjax.textval[data_id] : '';
+        var thisElement = element;
         var submitorreply = (notesAjax.submitorreply[data_id] == 0 || typeof notesAjax.submitorreply[data_id] == 'undefined' ) ? 'SUBMIT' : 'REPLY';
+        if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = 'Update';
+        
         element.qtip({
-            content: 
+            content: function() 
                 {
-                    text: '<div data-parent="'+parntclass+'" data-current="'+currentClass+'" data-id="'+data_id+'" data-position="'+position+'" class="sticky-note-theme">'
+                    var text = '<div data-parent="'+parntclass+'" data-current="'+currentClass+'" data-id="'+data_id+'" data-position="'+position+'" class="sticky-note-theme">'
                     +'<div class="note-top-option" style="background-color:'+notesAjax.nottopcolor+'">'
                     +'<div class="note-plus-button"><div class="note-plus-icon-button"></div></div>'
                     +'<div class="note-color-button"><div class="note-color-icon-button"></div></div>'
@@ -119,14 +147,24 @@
                     +'</div>'
                     +'</div><textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions..">'+textdata+'</textarea>'
                     +'<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
-                    +'</div>',
+                    +'</div>';
+                    jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
+                        console.log('onClick');
+                        $(element).qtip().hide();
+                        // $(text).remove();
+                    });
+
+                    return text;
                     
                 },
             show   : 'click',
-            hide   : 'click',
+            hide   : {
+                fixed: true,
+                event: 'click unfocus'
+            },
             events: {
                 hide: function(event, api) {
-                    text_content = jQuery(this).find('textarea').val(),
+                    var text_content = jQuery(this).find('textarea').val();
                     ajaxfuncton(parntclass, currentClass, text_content, position, data_id);
                 }
                 
@@ -136,7 +174,6 @@
     
 
     //css color 
-    $(document).ready(function(){
         jQuery(document.body).on('click', ".note-color-icon-button", function(){
           $(".note-top-option").attr("style", "display:none");
           $(".note-top-option-all").attr("style", "display:block");
@@ -207,13 +244,26 @@
             jQuery(this).closest('.modal').removeClass('active');
         });
         
-    });
 
+        // onclick submit button qtip hide 
+        function hideQtip(event){
+            
+        }
+
+        // Set Local storage if click new commet
+        jQuery(document.body).on('click', 'li#wp-admin-bar-note_new_comment a', function(e){
+            e.preventDefault();
+            localStorage.setItem("notestatus", 'active');
+            var status = localStorage.getItem("notestatus");
+            if(status == 'active'){
+                jQuery('sub.note-question').removeClass('d-none');
+            }
+        });
 
    
    }); // End Document ready
 
-   function openTab(evt, cityName) {
+function openTab(evt, cityName) {
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {

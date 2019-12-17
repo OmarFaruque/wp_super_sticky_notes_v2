@@ -2,19 +2,15 @@
     content: "\f163";
     top: 3px;
 }
-li#wp-admin-bar-admin_bar_custom_menu {
+li#wp-admin-bar-admin_bar_custom_menu2 {
     display: none;
 }
-#wpadminbar #wp-admin-bar-admin_bar_custom_menu2 .ab-icon:before {
-    content: "\f163";
-    top: 3px;
-}
 @media screen and (max-width: 782px){
-	#wpadminbar li#wp-admin-bar-admin_bar_custom_menu2{
+	#wpadminbar li#wp-admin-bar-admin_bar_custom_menu{
 		display: block;
 	}
 	
-	#wpadminbar #wp-admin-bar-admin_bar_custom_menu2 > .ab-item {
+	#wpadminbar #wp-admin-bar-admin_bar_custom_menu > .ab-item {
     	text-indent: 100%;
     	white-space: nowrap;
     	overflow: hidden;
@@ -24,7 +20,7 @@ li#wp-admin-bar-admin_bar_custom_menu {
     	position: relative;
 	}
 	
-	#wpadminbar #wp-admin-bar-admin_bar_custom_menu2 > .ab-item::before {
+	#wpadminbar #wp-admin-bar-admin_bar_custom_menu > .ab-item::before {
     	display: block;
     	text-indent: 0;
     	font: 400 32px/1 dashicons;
@@ -37,12 +33,176 @@ li#wp-admin-bar-admin_bar_custom_menu {
 	}
 }
 
+/*  */
+/* .active-area {
+    border: 1px solid #999;
+} */
+
+sub.note-question {
+	top: -1.5ex;
+	cursor: pointer;
+}
+sub.stickyQuestion {
+    bottom: 5px;
+}
+
+sub.note-question.allowed .note-question-icon-button {
+    background-image: url(images/allowed-help.png);
+}
+.note-question-icon-button {
+    background-image: url(images/help.png);
+    background-repeat: no-repeat;
+    width: 23px;
+    height: 25px;
+    background-color: rgba(0,0,0,0);
+    font-style: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: inline-block;
+    text-rendering: auto;
+    font-weight: normal;
+    position: absolute;
+    top: -18px;
+    left: -12px;
+    cursor: pointer;
+}
+/* note page design */
+.sticky-note-theme {
+    background-color: #FFFBE2;
+    height: 260px;
+    position: relative;
+    width: 350px;
+    overflow: hidden;
+}
+.qtip-content {
+    padding: 0px;
+    overflow: unset;
+}
+.qtip-default {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    background-color: transparent;
+    color: #555;
+}
+.note-top-option {
+    left: 0px;
+    height: 58px;
+    right: 0px;
+    top: 0px;
+    background-color: #F0B30C;
+    color: white;
+    overflow: hidden;
+    width: 100%;
+}
+.note-plus-button {
+    float: left;
+    width: 70%;
+    overflow: hidden;
+    height: 100%;
+}
+.note-color-button {
+    float: left;
+    width: 15%;
+    overflow: hidden;
+    height: 100%;
+}
+.note-exest-button {
+    float: left;
+    width: 15%;
+    overflow: hidden;
+    height: 100%;
+}
+textarea.sticky-note-text-editor {
+    resize: none;
+    height: 77%;
+    background-color: #FFFBE2;
+    font-size: 16px;
+}
+.note-top-option-color {
+    left: 0px;
+    height: 58px;
+    right: 0px;
+    top: 0px;
+    background-color: #F0B30C;
+    color: white;
+    overflow: hidden;
+    width: 100%;
+}
+.color-option {
+    float: left;
+    overflow: hidden;
+    height: 100%;
+    width: 14.28%;
+}
+.color-1 {
+    background-color: #F0B30C;
+    cursor: pointer;
+}
+.color-2 {
+    background-color: #9BDBF6;
+    cursor: pointer;
+}
+.color-3 {
+    background-color: #B45FF6;
+    cursor: pointer;
+}
+.color-4 {
+    background-color: #F87098;
+    cursor: pointer;
+}
+.color-5 {
+    background-color: #3FD981;
+    cursor: pointer;
+}
+.color-6 {
+    background-color: #AEAEAE;
+    cursor: pointer;
+}
+.color-7 {
+    background-color: #686868;
+    cursor: pointer;
+}
+.note-plus-icon-button {
+    background-image: url(images/plus.png);
+    background-repeat: no-repeat;
+    width: 26px;
+    margin: 16px;
+    height: 26px;
+    cursor: pointer;
+}
+.note-color-icon-button{
+    background-image: url(images/menu.png);
+    background-repeat: no-repeat;
+    width: 26px;
+    margin: 16px;
+    height: 26px;
+    cursor: pointer;
+}
+.note-exest-icon-button{
+    background-image: url(images/close.png);
+    background-repeat: no-repeat;
+    width: 26px;
+    margin: 16px;
+    height: 26px;
+    cursor: pointer;
+}
+textarea.sticky-note-text-editor:focus {
+    outline-color: #6d6d6d;
+}
+.br-replace{
+    display:block;
+    margin: -20px;
+}
+/* user css */
+
+
 .super-sticky-notes {
     margin: 50px;
 }
 .sticky-setting-title {
     margin-bottom: 50px;
-    margin-left: 10px;
+    margin-left: 20px;
 }
 .setting-icon h1 {
     margin-left: 45px;
@@ -55,32 +215,31 @@ li#wp-admin-bar-admin_bar_custom_menu {
     width: 36px;
     height: 36px;
     position: absolute;
-	margin-top: -5px;
+	margin-top: 10px;
 }
 .super-sticky-notes .tab {
-    padding-left: 10px;
+    padding-left: 20px;
     overflow: hidden;
     float: left;
 }
 .super-sticky-notes .tabcontent {
     display: none;
-    padding: 15px;
     background-color: #fff;
 }
 button.tablinks.active {
-    color: #098686;
+    color: #098686 !important;
 }
 button.tablinks {
-    background-color: inherit;
-    border: none;
-    outline: none;
+    background-color: inherit !important;
+    border: none !important;
+    outline: none !important;
     cursor: pointer;
-    transition: 0.3s;
-    font-size: 20px;
-    font-weight: 600;
-	color: #707070;
-	float: left;
-}
+    transition: 0.3s !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #707070 !important;
+    float: left !important;
+  }
 .tab-icons:before {
     content: '\|';
     font-size: 24px;
@@ -100,6 +259,7 @@ tr.note-heading-wrapper th {
 table.sticky-notes-data-table td, th {
     text-align: center;
     padding: 10px;
+    vertical-align: inherit;
 }
 table.sticky-notes-data-table th {
     padding-bottom: 20px;
@@ -159,7 +319,7 @@ table.sticky-notes-data-table button.reply {
     color: #fff !important;
     text-transform: uppercase;
     text-decoration: none;
-    background: #675E60;
+    background: #469710;
     padding: 8px 22px;
     font-size: 15px;
     font-weight: 400;
@@ -357,27 +517,29 @@ table.sticky-notes-data-table  .disapproved-reply {
     border: none;
     transition: all 0.4s ease 0s;
     box-shadow: 3px 3px 5px grey;
+    margin-bottom: 20px;
 }
 .note-reply-page .note-reply{
     float: right;
 }
 .note-reply-page textarea {
     resize: none;
+    width: 100%;
+    background: #fff;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-top: 6px;
+    margin-bottom: 16px;
 }
-.next-conversation p, .visitor-conversation p {
+.next-conversation p {
     float: left;
     color: #737373;
     font-size: 14px;
 }
-
-input.checbox-visitor {
-  display: none;
-}
-.visitor-conversation {
-  margin-left: 10px;
-}
 /* slider button css */
-.next-conversation  .switch, .visitor-conversation .switch {
+.next-conversation .switch {
     float: left;
     position: relative;
     display: inline-block;
@@ -462,13 +624,12 @@ td.note-status-view {
 }
 .tab-search {
     float: right;
-    padding-right: 10px;
+    padding-right: 30px;
 }
 .sticky-top-bar .tab-icons {
     float: left;
 }
 .sticky-top-bar {
-    padding: 15px 0px;
     width: 100%;
     overflow: hidden;
 }
@@ -479,6 +640,117 @@ td.note-status-view {
     border-radius: 6px;
     margin-right: 8px;
 }
-p.checked-message {
-  padding-left: 10px;
+.tab button {
+    padding: 10px;
+}
+tr.note-heading-wrapper th {
+    text-align: center;
+}
+.disapproved {
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #EE083D;
+}
+.approved {
+    transition: 0.3s;
+    font-size: 12px;
+    font-weight: 600;
+    color: #04B89B;
+}
+.setting-icon h1:after {
+    content: '';
+    background-image: url(images/notification.png);
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    margin-top: -5px;
+    opacity: 1;
+}
+.note-reply-page {
+    padding: 5px 20px;
+}
+.modal-content h3 {
+    padding-top: 20px;
+    padding-left: 20px;
+}
+button.note-reply {
+    
+    z-index: 0;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: #fff !important;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 8px 22px;
+    font-size: 15px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+.note-top-option-comment-list {
+    height: 58px;
+    top: 58px;
+    background: #fff;
+    width: 100%;
+    position: absolute;
+}
+.note-top-option-delete-comment {
+    height: 58px;
+    top: 116px;
+    background: #fff;
+    width: 100%;
+    position: absolute;
+}
+p.note-go-to-comment {
+    color: #727272;
+    font-size: 20px;
+    padding-top: 20px;
+    padding-left: 52px;
+    cursor: pointer;
+}
+p.note-go-to-comment:before {
+    content: '';
+    background-image: url(images/list.png);
+    background-repeat: no-repeat;
+    width: 36px;
+    height: 36px;
+    position: absolute;
+    margin-left: -32px;
+    margin-top: -4px;
+}
+p.note-top-option-delete-all-comment {
+    color: #F90A0A;
+    font-size: 20px;
+    padding-top: 20px;
+    padding-left: 52px;
+    cursor: pointer;
+}
+p.note-top-option-delete-all-comment:before {
+    content: '';
+    background-image: url(images/delete.png);
+    background-repeat: no-repeat;
+    width: 36px;
+    height: 36px;
+    position: absolute;
+    margin-left: -32px;
+    margin-top: -4px;
+}
+div.qtip-content button:focus {
+    border-width: 0;
+    outline: none;
+}
+.d-none
+{
+    display: none;
+}
+.supper_sticky_note
+{
+    max-width: unset !important;
 }

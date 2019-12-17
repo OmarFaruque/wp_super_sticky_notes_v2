@@ -5,7 +5,6 @@
 
         if (isset($_POST['user_note_reply_text']))
         {
-
             $note_reply_ids = $_POST['note_reply_ids'];
             $user_note_reply_text = $_POST['user_note_reply_text'];
             $insert_time = date("Y-m-d H:i:s");
@@ -22,29 +21,28 @@
             $title = $prent_notes['title'];
             $next_conv_allowed = 0;
            
-            $table_name = $wpdb->prefix . 'super_sticky_notes';
+            
             $all_parent_id = $wpdb->get_row("SELECT `id` FROM $table_name WHERE `user_id` = $user_id AND `page_id` = $page_id AND `parent_class` = '".$parent_class."' AND `note_position` = $note_position AND `parent_id` = $note_reply_ids ", OBJECT);
             $all_parent_ids = json_decode(json_encode($all_parent_id), true);
             $all_id = $all_parent_ids['id'];
-
 
             if ($all_id) {
 
                 $wpdb->update( $table_name,
                 array(
-                     'note_values' => $user_note_reply_text
+                     'note_values' => $user_note_reply_text,
+                     'next_conv_allowed' => $next_conv_allowed
                     ),
                 array(
                     'id'=> $all_id
                     ),
-                array('%s'),
+                array('%s', '%d'),
                 array('%d')
                 );
 
             }
             else{  
-
-                $wpdb->insert( $table_name, 
+                $insert = $wpdb->insert( $table_name, 
                 array(
                     'user_id' => $user_id,
                     'page_id' => $page_id,
@@ -58,16 +56,17 @@
                 ),
                 array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%d')
                 );
+
                 //insert data end
+                // If insert desable old comment
+                $desablePrev = $wpdb->delete( 
+                    $table_name,
+                    array('id'=> $note_reply_ids),
+                    array('%d')
+                );
             }
             
         }
-                
-
-            
-        
-    
-    
     ?>
     <div class="super-sticky-notes">
         <div class="sticky-setting-title"><div class=setting-icon><h1><?php _e('User Question Lists', 'wp_super_sticky_notes'); ?></h1></div></div>
@@ -131,7 +130,9 @@
                            <div class="approved"><?php _e('Approved', 'wp_super_sticky_notes'); ?></div>
                         <?php }elseif($note_values['note_status'] == 'Disapproved'){ ?> 
                             <div class="disapproved"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></div>
-                        <?php }?> 
+                        <?php }else{?> 
+                            <div class="disapproved"><?php _e('Not Approved', 'wp_super_sticky_notes'); ?></div>
+                        <?php } ?>
                     </td>
                     <td>
                         <?php if($note_values['note_status'] == 'Disapproved'){?>
@@ -362,5 +363,4 @@
             </table>
 
         </div>
-
     </div>
