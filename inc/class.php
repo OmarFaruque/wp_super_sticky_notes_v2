@@ -34,12 +34,23 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             // Add Theme Options to Admin Bar
             add_action('admin_bar_menu', array($this, 'sticky_notes_admin_bar_menu_function'), 55);
 
-            /* Send item to sold field */ 
+            /* Send item field */ 
             add_action('wp_ajax_nopriv_sendtonotesajax', array($this, 'sendtonotesajax'));
             add_action( 'wp_ajax_sendtonotesajax', array($this, 'sendtonotesajax') );
 
+            /* Send item to allcomment */ 
+            add_action('wp_ajax_nopriv_allcommentajax', array($this, 'allcommentajax'));
+            add_action( 'wp_ajax_allcommentajax', array($this, 'allcommentajax') );
+
+            /* Send item to deletecomment */ 
+            add_action('wp_ajax_nopriv_deletecommentajax', array($this, 'deletecommentajax'));
+            add_action( 'wp_ajax_deletecommentajax', array($this, 'deletecommentajax') );
+
             //note save 
             add_action('admin_init', array($this, 'notes_save_create_db'));
+
+            //Store logininid to cookies
+            add_action('init', array($this, 'storeloginidtocookies'));
 
             //add filter
             add_filter( 'the_content', array($this, 'filter_the_content_in_the_main_loop') );
@@ -47,6 +58,15 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             // Shortcode for frontend use
             add_shortcode( 'all-sticky-comments', array($this, 'larasoftbd_question_lists_shortcode') );
             
+        }
+
+        /*
+        * Store Login-id to cookies
+        */
+        public function storeloginidtocookies(){
+            if(is_user_logged_in()){
+                setcookie("sticky_id", get_current_user_id() ,time()+31556926 ,'/');// where 31556926 is total seconds for a year.
+            }
         }
 
         /*
@@ -59,6 +79,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         // Add Theme Options to Admin Bar Menu
         function sticky_notes_admin_bar_menu_function() {
             global $wp_admin_bar;
+            global $post;
+            // echo 'pageid : ' . $post->ID;
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $wp_admin_bar->add_menu( array(
                 'id'        => 'admin_bar_custom_menu',
@@ -69,7 +91,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 'parent'    => 'admin_bar_custom_menu',
                 'id'        => 'note_new_comment',
                 'title'     => __( 'New Comment', 'some-textdomain' ),
-                'href'      => '#'
+                'href'      => get_the_permalink( $post->ID ) . '?note=1',
             ) );
             $wp_admin_bar->add_menu( array(
                 'parent'    => 'admin_bar_custom_menu',
@@ -110,12 +132,16 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $noteoptions = json_decode(stripcslashes($_COOKIE['noteoptions']));
             endif;
 
-            $current_user_id = get_current_user_id();
+            $current_user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] : get_current_user_id();
             $current_page_id = $post->ID;
+            $current_page_url = get_permalink( $current_page_id );
+
+            $status = (isset($_REQUEST['note']) && $_REQUEST['note'] == 1) ? 'active' : '';
 
             $table_name = $wpdb->prefix . 'super_sticky_notes';
-            $note_values = $wpdb->get_results("SELECT `id`, `note_values` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);                   
-            $next_conv_allowed = $wpdb->get_results("SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);   
+            $note_values = $wpdb->get_results("SELECT `id`, `note_values` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);  
+
+            $next_conv_allowed = $wpdb->get_results("SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);
 
             $note_valuess = array();
             foreach($note_values as $single) $note_valuess[$single->id] = $single->note_values;
@@ -130,19 +156,23 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
             // Not using imagesLoaded? :( Okay... then this.
             
-            wp_enqueue_script('larasoftbd_NoteJS', $this->plugin_url . 'asset/js/ls_note_frontend.js', array('jquery'), time(), true);
+            
             wp_enqueue_script('qtipjs', $this->plugin_url . 'asset/qtip_asset/jquery.qtip.min.js', array(), time(), true);
+            wp_enqueue_script('larasoftbd_NoteJS', $this->plugin_url . 'asset/js/ls_note_frontend.js', array('jquery'), time(), true);
             //ajax
             wp_localize_script( 'larasoftbd_NoteJS', 'notesAjax', 
                 array(
                     'ajax' => admin_url( 'admin-ajax.php' ),
                     'current_page_id' => $post->ID,
-                    'user_id' => get_current_user_id(),
+                    'user_id' => $current_user_id,
                     'title' => get_the_title(),
+                    'login_status' => (is_user_logged_in()) ? 'login':'logout',
                     'nottopcolor' => (isset($noteoptions->topoption)) ? $noteoptions->topoption : '',
                     'notetextbg' => (isset($noteoptions->texteditorbg)) ? $noteoptions->texteditorbg : '',
                     'textval' => $note_valuess,
-                    'submitorreply' => $next_conv_alloweds
+                    'submitorreply' => $next_conv_alloweds,
+                    'status' => $status,
+                    'current_page_url' => $current_page_url
                 )
             );
             
@@ -166,7 +196,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 note_values TEXT NOT NULL,
                 insert_time TIMESTAMP,
                 title VARCHAR(100) NOT NULL, 
-                note_color VARCHAR(10) NOT NULL,
                 note_status VARCHAR(20) NOT NULL,
                 note_reply TEXT NOT NULL,
                 note_repliedOn VARCHAR(20) NOT NULL,
@@ -182,6 +211,33 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             // DROP TABLE `gym_super_sticky_notes`
         }
 
+        function allcommentajax(){
+            $page_id = get_option( 'allcommentpage', 1 );
+            $page_url = get_permalink( $page_id );
+            echo json_encode(
+                array(
+                    'message' => 'success',
+                    'page_url' => $page_url
+                )
+            );
+            die();           
+        }
+
+        function deletecommentajax(){
+            global $wpdb;
+
+           $position = $_POST['position'];
+           $table_name = $wpdb->prefix . 'super_sticky_notes';
+           $wpdb->delete( $table_name, [ 'note_position' => $position] );
+
+            echo json_encode(
+                array(
+                    'message' => 'success',
+                    'position' => $position
+                )
+            );
+            die();           
+        }
 
         /*
         * Send Code as Sold
@@ -199,44 +255,84 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $current_Class = $_POST['currentClass'];
             $user_id = $_POST['user_id'];
             $text_content = $_POST['text_content'];
-            $note_color = $_POST['note_color'];
             $title = $_POST['title'];
             $next_conv_allowed = 0;
             $data_id = $_POST['data_id'];
 
             $table_name = $wpdb->prefix . 'super_sticky_notes';
 
-
             $j = '';
-            if ($data_id) {
+            if ($data_id != '' ) {
+                $next_conv_allowedss = $wpdb->get_row("SELECT `next_conv_allowed` FROM ".$table_name." WHERE `id`=".$data_id."", OBJECT);
+                $next_conv_allowedsss = $next_conv_allowedss->next_conv_allowed;
 
-                $wpdb->update( $table_name,
-                array(
-                     'note_values' => $text_content
-                    ),
-                array(
-                    'id' => $data_id
-                    ),
-                array('%s'),
-                array('%d')
-                );
-                $j = 'yes';
+                if ($next_conv_allowedsss == 1 ){
+                    $reply_id = $wpdb->get_row("SELECT `id` FROM ".$table_name." WHERE `parent_id`=".$data_id."", OBJECT);
+                    $reply_ids = $reply_id->id;
+                    if ($reply_ids != '' ) {
+
+                        $wpdb->update( $table_name,
+                        array(
+                             'note_values' => $text_content
+                            ),
+                        array(
+                            'id' => $reply_ids
+                            ),
+                        array('%s'),
+                        array('%d')
+                        );
+                        $j = 'yes';
+
+                    }else{
+                        $wpdb->insert( 
+                            $table_name, 
+                            array(
+                                'user_id' => $user_id,
+                                'page_id' => $current_page_id,
+                                'current_Class' => $current_Class,
+                                'note_position' => $position,
+                                'note_values' => $text_content,
+                                'title' => $title,
+                                'next_conv_allowed' => $next_conv_allowed,
+                                'parent_id' => $data_id
+                            ),
+                            array('%d', '%d', '%s', '%d', '%s', '%s', '%d', '%d')
+                        );
+                        //insert data end
+                        $j = 'no';
+                    }
+
+                }else{
+
+                    $wpdb->update( $table_name,
+                    array(
+                         'note_values' => $text_content
+                        ),
+                    array(
+                        'id' => $data_id
+                        ),
+                    array('%s'),
+                    array('%d')
+                    );
+                    $j = 'yes';
+                }
+                
             }
             else{
-                
-                $wpdb->insert( $table_name, 
-                array(
-                    'user_id' => $user_id,
-                    'page_id' => $current_page_id,
-                    'parent_class' => $parentClass,
-                    'current_Class' => $current_Class,
-                    'note_position' => $position,
-                    'note_values' => $text_content,
-                    'note_color' => $note_color,
-                    'title' => $title,
-                    'next_conv_allowed' => $next_conv_allowed
-                ),
-                array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%d')
+
+                $wpdb->insert( 
+                    $table_name, 
+                    array(
+                        'user_id' => $user_id,
+                        'page_id' => $current_page_id,
+                        'parent_class' => $parentClass,
+                        'current_Class' => $current_Class,
+                        'note_position' => $position,
+                        'note_values' => $text_content,
+                        'title' => $title,
+                        'next_conv_allowed' => $next_conv_allowed
+                    ),
+                    array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d')
                 );
                 //insert data end
                 $j = 'no';
@@ -244,11 +340,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
             echo json_encode(
                 array(
-                    'note' => 'tstffsf',
-                    'j'  => $j,
-                    'data-id' => $data_id
-
-                    
+                    'message' => $j
                 ));
             die();
 
@@ -259,12 +351,12 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             if(get_option( 'visitor_allowed', 1 ) == 0){
                 return $content;
             }
-            
+            $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
             // Check if we're inside the main loop in a single post page.
             //if ( is_single() && in_the_loop() && is_main_query() ) {
                 global $wpdb;
                 $current_page_id = get_the_ID();
-                $user_id = get_current_user_id();
+                $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
                 $table_name = $wpdb->prefix . 'super_sticky_notes';
                 $all_page_id = $wpdb->get_results("SELECT `page_id` FROM $table_name WHERE `user_id` = $user_id", OBJECT);
                 $all_page_ids = array();
@@ -273,7 +365,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     $all_page_ids[] = $value->page_id;
                 }
                 $show_values = array();
-                if (in_array($current_page_id, $all_page_ids))
+                if(!isset($_REQUEST['note']) && in_array($current_page_id, $all_page_ids))
                 {
                     // // echo 'yes';
                     $all_current_Class = $wpdb->get_results("SELECT `current_Class` FROM $table_name WHERE `user_id` = $user_id AND `page_id` = $current_page_id GROUP BY `current_Class`", OBJECT);
@@ -283,13 +375,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         $all_current_Classs[] = $value->current_Class;
                     }
 
-                    $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
                     $content = '<div class="supper_sticky_note">' . $content . '</div>';
 
                     $DOM = new DOMDocument();
                     $DOM->loadHTML($content);
                     $list = $DOM->getElementsByTagName('p');
                     $i = 0;
+
+
 
                     foreach($list as $p){
                         $p->setAttribute('class', 'p-class'.$i++);
@@ -326,8 +419,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         $real_values_in_array = array();
                         $real_values_in_array = str_split($real_values, 1);
 
-                        
-
                         $my_html = 0;
                         foreach ($all_note_positions as $single_positions) {
                             $data_id = $wpdb->get_row("SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `current_Class` = '".$classname."' AND `user_id` = $user_id AND `page_id` = $current_page_id AND `note_position` = $single_positions ", OBJECT);
@@ -340,9 +431,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             $dataActive = ($data_ids['next_conv_allowed'] == 1) ? 'allowed' : '';
 
                             $single_position = $single_positions + $my_html;
+
                             $actual_value_text = array_slice($real_values_in_array, 0, $single_position, true) +
-                            array("my_html'.$my_html.'" => "<sub data-current='$classname' data-id='$data_idd' data-position='$single_positions' class='note-question d-none ".$dataActive." '><span class='note-question-icon-button old'></span></sub>") +
+                            array("my_html'.$my_html.'" => "<sub data-current='$classname' data-id='$data_idd' data-position='$single_positions' class='note-question ".$dataActive." '><span class='note-question-icon-button old'></span></sub>") +
                             array_slice($real_values_in_array, $single_position, count($real_values_in_array) - 1, true) ;
+
 
                             $real_values_in_array = $actual_value_text;
                             $my_html++;
@@ -500,7 +593,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <tr>
                             <td><?php $author_obj = get_user_by('id', $note_values['user_id']); echo $author_obj->data->user_nicename; ?></td>
                             <td><?php echo $note_values['note_values']; ?></td>
-                            <td class="note-title"><?php echo $note_values['title']; ?></td>
+                            <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
                             <td><?php echo $note_values['insert_time']; ?></td>
                             <td class="note-status-view">
                                 <?php if($note_values['note_status'] == ''){?>
@@ -609,7 +702,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <tr>
                             <td><?php $author_obj = get_user_by('id', $note_values['user_id']); echo $author_obj->data->user_nicename; ?></td>
                             <td><?php echo $note_values['note_values']; ?></td>
-                            <td class="note-title"><?php echo $note_values['title']; ?></td>
+                            <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
                             <td><?php echo $note_values['insert_time']; ?></td>
                             <td class="note-status-view">
                                 <?php if($note_values['note_status'] == ''){?>
@@ -717,7 +810,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <tr>
                             <td><?php $author_obj = get_user_by('id', $note_values['user_id']); echo $author_obj->data->user_nicename; ?></td>
                             <td><?php echo $note_values['note_values']; ?></td>
-                            <td class="note-title"><?php echo $note_values['title']; ?></td>
+                            <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
                             <td><?php echo $note_values['insert_time']; ?></td>
                             <td class="note-status-view">
                                 <?php if($note_values['note_status'] == ''){?>

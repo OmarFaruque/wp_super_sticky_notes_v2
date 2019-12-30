@@ -41,7 +41,9 @@
                 );
 
             }
-            else{  
+            else{
+
+
                 $insert = $wpdb->insert( $table_name, 
                 array(
                     'user_id' => $user_id,
@@ -57,13 +59,7 @@
                 array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%d')
                 );
 
-                //insert data end
-                // If insert desable old comment
-                $desablePrev = $wpdb->delete( 
-                    $table_name,
-                    array('id'=> $note_reply_ids),
-                    array('%d')
-                );
+
             }
             
         }
@@ -115,13 +111,14 @@
                     $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name WHERE `user_id` = $current_user_id ", OBJECT);                   
                     $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
                     }
-
+                    
                     foreach ($all_valus_notes as $note_values){
+
                 ?>
                 <tr>
                     
                     <td><?php echo $note_values['note_values']; ?></td>
-                    <td class="note-title"><?php echo $note_values['title']; ?></td>
+                    <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
                     <td><?php echo $note_values['insert_time']; ?></td>
                     <td class="note-class-view"><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><?php _e('Not approved by admin', 'wp_super_sticky_notes'); ?></div> <?php }elseif( $note_values['note_reply'] == ''){ _e('Not reply by admin', 'wp_super_sticky_notes'); }else{ echo $note_values['note_reply']; } ?></td>
                     <td><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><?php _e('Nil', 'wp_super_sticky_notes'); ?></div> <?php }elseif( $note_values['note_repliedOn'] == ''){ _e('No date', 'wp_super_sticky_notes'); }else{ echo $note_values['note_repliedOn']; } ?></td>
@@ -216,7 +213,7 @@
                 <tr>
                     
                     <td><?php echo $note_values['note_values']; ?></td>
-                    <td class="note-title"><?php echo $note_values['title']; ?></td>
+                    <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
                     <td><?php echo $note_values['insert_time']; ?></td>
                     <td class="note-class-view"><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><?php _e('Not approved by admin', 'wp_super_sticky_notes'); ?></div> <?php }elseif( $note_values['note_reply'] == ''){ _e('Not reply by admin', 'wp_super_sticky_notes'); }else{ echo $note_values['note_reply']; } ?></td>
                     <td><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><?php _e('Nil', 'wp_super_sticky_notes'); ?></div> <?php }elseif( $note_values['note_repliedOn'] == ''){ _e('No date', 'wp_super_sticky_notes'); }else{ echo $note_values['note_repliedOn']; } ?></td>
@@ -308,7 +305,7 @@
                 <tr>
                     
                     <td><?php echo $note_values['note_values']; ?></td>
-                    <td class="note-title"><?php echo $note_values['title']; ?></td>
+                    <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
                     <td><?php echo $note_values['insert_time']; ?></td>
                     <td class="note-class-view"><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><?php _e('Not approved by admin', 'wp_super_sticky_notes'); ?></div> <?php }elseif( $note_values['note_reply'] == ''){ _e('Not reply by admin', 'wp_super_sticky_notes'); }else{ echo $note_values['note_reply']; } ?></td>
                     <td><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><?php _e('Nil', 'wp_super_sticky_notes'); ?></div> <?php }elseif( $note_values['note_repliedOn'] == ''){ _e('No date', 'wp_super_sticky_notes'); }else{ echo $note_values['note_repliedOn']; } ?></td>

@@ -49,6 +49,23 @@ sub.stickyQuestion {
 sub.note-question.allowed .note-question-icon-button {
     background-image: url(images/allowed-help.png);
 }
+.note-question-icon-button.old {
+    background-image: url(images/help.png);
+    background-repeat: no-repeat;
+    width: 23px;
+    height: 25px;
+    background-color: rgba(0,0,0,0);
+    font-style: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: inline-block;
+    text-rendering: auto;
+    font-weight: normal;
+    position: absolute;
+    top: -16px;
+    left: -12px;
+    cursor: pointer;
+}
 .note-question-icon-button {
     background-image: url(images/help.png);
     background-repeat: no-repeat;
@@ -62,7 +79,7 @@ sub.note-question.allowed .note-question-icon-button {
     text-rendering: auto;
     font-weight: normal;
     position: absolute;
-    top: -18px;
+    top: -26px;
     left: -12px;
     cursor: pointer;
 }
@@ -264,8 +281,9 @@ table.sticky-notes-data-table td, th {
 table.sticky-notes-data-table th {
     padding-bottom: 20px;
 }
-td.note-title {
+td.note-title a {
     color: #04B89B;
+    text-decoration: none !important;
 }
 table.sticky-notes-data-table button.approved {
     background-color: inherit;
@@ -676,7 +694,7 @@ tr.note-heading-wrapper th {
     padding-left: 20px;
 }
 button.note-reply {
-    
+    background-color: #F0B30C;
     z-index: 0;
     position: absolute;
     bottom: 10px;

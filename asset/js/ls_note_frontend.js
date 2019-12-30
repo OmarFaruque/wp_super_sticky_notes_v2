@@ -19,13 +19,15 @@
 
 
 
-    jQuery(document.body).on('click','.supper_sticky_note p', function(evt){
-        var status = localStorage.getItem("notestatus");
-        if(jQuery(this).find('sub.new').length == 0 && evt.target.tagName != 'SPAN' && status == 'active'){
+    jQuery(document.body).one('click','.supper_sticky_note p', function(evt){
+        // var status = localStorage.getItem("notestatus");
+
+        if(jQuery(this).find('sub.new').length == 0 && notesAjax.status == 'active'){
         var content = jQuery(this);
         var parentClass = $(this).parent().attr('class');
         var currentClass = $(this).attr('class');
         let position = window.getSelection().focusOffset;
+        //console.log('position1: ' + position);
 
         var myAnchorNodeValue = window.getSelection().anchorNode.nodeValue;
         var myAnchorOffset = window.getSelection().anchorOffset;
@@ -35,15 +37,17 @@
         var newCount = myAnchorNodeValue.slice(0, myAnchorOffset);
         position = newCount.length;
 
+        // console.log('myFocusNodeLength: ' + myFocusNodeLength);
+        // console.log('position2: ' + position);
         window.getSelection().anchorNode.nodeValue = myAnchorNodeValue.slice(0, myAnchorOffset) + '<sub class="new stickyQuestion" data-parent="'+parentClass+'" data-current="'+currentClass+'" data-position="'+position+'" class="note-question"><span class="note-question-icon-button">' + myAnchorNodeValue.slice(myAnchorOffset);
-    
         
         var myFocusNodeValue = window.getSelection().focusNode.nodeValue;
     
         if(window.getSelection().focusNode.nodeValue.length - myFocusNodeLength > 0) {
             myFocusOffset += window.getSelection().focusNode.nodeValue.length - myFocusNodeLength;
         }
-    
+        
+        position = myFocusOffset;
         window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + '</span></sub>' + myFocusNodeValue.slice(myFocusOffset);
 
         var thishtml = jQuery(this).html();
@@ -66,20 +70,14 @@
     }
     
 
-    function ajaxfuncton(parntclass, currentClass, text_content, position, data_id){
+    function ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url){
 
-        console.log(parntclass);
-        console.log(currentClass);
-        console.log(text_content); 
-        console.log(position);  
+        
         var current_page_id = notesAjax['current_page_id'];
         var user_id = notesAjax['user_id'];
         var title = notesAjax['title'];
-        console.log(current_page_id); 
-        console.log(user_id); 
-        console.log(notesAjax.ajax);
-        console.log(title);
-        console.log(data_id);
+       
+        if(typeof data_id == 'undefined') data_id = '';
    
         jQuery.ajax({
            type : 'post',
@@ -98,10 +96,14 @@
             url : notesAjax.ajax,
             success:function(data){
                 //alert('dfsfs');
-                console.log(data);
-                if(data.message == 'success'){
-                    }
+                // console.log(data);
+                if(data.message == 'no'){
+                    window.location.href = current_page_url;
                 }
+            }, 
+            error:function(){
+                console.log('error');
+            }
             });    
 
     }
@@ -122,11 +124,15 @@
         var currentClass = element.closest('sub').data('current');
         var data_id = element.closest('sub').data('id');
         var status = (element.hasClass('old')) ? 'old' : 'new';
+        var current_page_url = notesAjax.current_page_url;
+
+
+        var textdata = (typeof notesAjax.textval[data_id] != 'undefined' && notesAjax.submitorreply[data_id] == 0) ? notesAjax.textval[data_id] : '';
         
-        var textdata = (typeof notesAjax.textval[data_id] != 'undefined') ? notesAjax.textval[data_id] : '';
         var thisElement = element;
         var submitorreply = (notesAjax.submitorreply[data_id] == 0 || typeof notesAjax.submitorreply[data_id] == 'undefined' ) ? 'SUBMIT' : 'REPLY';
         if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = 'Update';
+        if(notesAjax.login_status == 'logout') submitorreply = '';
         
         element.qtip({
             content: function() 
@@ -143,13 +149,12 @@
                     +'<div class="color-5 color-option"></div><div class="color-6 color-option"></div>'
                     +'<div class="color-7 color-option"></div>'
                     +'<div class="note-top-option-comment-list"><p class="note-go-to-comment">Go to your comments list</p></div>'
-                    +'<div class="note-top-option-delete-comment" data-id="'+data_id+'"><p class="note-top-option-delete-all-comment">Delete your comment</p></div>'
+                    +'<div class="note-top-option-delete-comment" data-position="'+position+'" data-id="'+data_id+'"><p class="note-top-option-delete-all-comment">Delete your comment</p></div>'
                     +'</div>'
-                    +'</div><textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions..">'+textdata+'</textarea>'
-                    +'<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
-                    +'</div>';
+                    +'</div><textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions..">'+textdata+'</textarea>';
+                    if(submitorreply !='') text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
+                    text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
-                        console.log('onClick');
                         $(element).qtip().hide();
                         // $(text).remove();
                     });
@@ -165,7 +170,9 @@
             events: {
                 hide: function(event, api) {
                     var text_content = jQuery(this).find('textarea').val();
-                    ajaxfuncton(parntclass, currentClass, text_content, position, data_id);
+                    if(notesAjax.login_status != 'logout'){
+                        ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url);
+                    }
                 }
                 
             }
@@ -250,17 +257,78 @@
             
         }
 
-        // Set Local storage if click new commet
-        jQuery(document.body).on('click', 'li#wp-admin-bar-note_new_comment a', function(e){
-            e.preventDefault();
-            localStorage.setItem("notestatus", 'active');
-            var status = localStorage.getItem("notestatus");
-            if(status == 'active'){
-                jQuery('sub.note-question').removeClass('d-none');
-            }
+        // Set Local storage if click new commet  wp-admin-bar-note_new_comment
+        // jQuery(document.body).on('click', 'li#wp-admin-bar-note_new_comment a', function(e){
+        //     e.preventDefault();
+        //     localStorage.setItem("notestatus", 'active');
+        //     var status = localStorage.getItem("notestatus");
+        //     if(status == 'active'){
+        //         jQuery('sub.note-question').removeClass('d-none');
+        //     }
+        // });
+
+        jQuery(document.body).on('click', ".note-go-to-comment", function(){
+
+            jQuery.ajax({
+                type : 'post',
+                dataType: 'json',
+                data : {
+                    'action'                  : 'allcommentajax' 
+                },
+                url : notesAjax.ajax,
+                success:function(data){
+                    console.log(data);
+                    if(data.message == 'success'){
+                        var win = window.open(data.page_url , '_blank');
+                        win.focus();
+                    }
+                }
+            });
         });
 
-   
+        jQuery(document.body).on('click', ".note-top-option-delete-comment", function(){
+
+            var position = jQuery(this).data('position');
+
+            jQuery.ajax({
+                type : 'post',
+                dataType: 'json',
+                data : {
+                    'position'                : position,
+                    'action'                  : 'deletecommentajax' 
+                },
+                url : notesAjax.ajax,
+                success:function(data){
+                    console.log(data);
+                    if(data.message == 'success'){
+                        window.location.reload();
+                    }
+                }
+            });
+        });
+
+        jQuery(document.body).on('click', "#wp-admin-bar-admin_bar_custom_menu > a", function(){
+            event.preventDefault();
+            console.log('data');
+        });
+
+        jQuery(document.body).on('click', "#wp-admin-bar-note_old_comments a", function(){
+            jQuery.ajax({
+                type : 'post',
+                dataType: 'json',
+                data : {
+                    'action'                  : 'allcommentajax' 
+                },
+                url : notesAjax.ajax,
+                success:function(data){
+                    console.log(data);
+                    if(data.message == 'success'){
+                        var win = window.open(data.page_url , '_blank');
+                        win.focus();
+                    }
+                }
+            });
+        });
    }); // End Document ready
 
 function openTab(evt, cityName) {

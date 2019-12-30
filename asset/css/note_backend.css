@@ -104,8 +104,9 @@ table.sticky-notes-data-table td, th {
 table.sticky-notes-data-table th {
     padding-bottom: 20px;
 }
-td.note-title {
+td.note-title a {
     color: #04B89B;
+    text-decoration: none !important;
 }
 table.sticky-notes-data-table button.approved {
     background-color: inherit;
