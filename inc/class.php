@@ -353,7 +353,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             }
             $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
             // Check if we're inside the main loop in a single post page.
-            //if ( is_single() && in_the_loop() && is_main_query() ) {
+            //if ( is_single() && in_the_loop() && is_main_query() ) { c
                 global $wpdb;
                 $current_page_id = get_the_ID();
                 $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
