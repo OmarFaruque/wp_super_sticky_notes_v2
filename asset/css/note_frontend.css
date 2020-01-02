@@ -86,7 +86,7 @@ sub.note-question.allowed .note-question-icon-button {
 /* note page design */
 .sticky-note-theme {
     background-color: #FFFBE2;
-    height: 260px;
+    min-height: 260px;
     position: relative;
     width: 350px;
     overflow: hidden;
@@ -132,9 +132,10 @@ sub.note-question.allowed .note-question-icon-button {
 }
 textarea.sticky-note-text-editor {
     resize: none;
-    height: 77%;
+    min-height: 200px;
     background-color: #FFFBE2;
     font-size: 16px;
+    display: block;
 }
 .note-top-option-color {
     left: 0px;
@@ -771,4 +772,105 @@ div.qtip-content button:focus {
 .supper_sticky_note
 {
     max-width: unset !important;
+}
+.sticky-note-theme .admin-reply {
+    font-size: 16px;
+    padding: 10px;
+    line-height: normal;
+    background-color: #FFF7C3;
+}
+.sticky-note-theme a:focus,.sticky-note-theme input:focus,.sticky-note-theme textarea:focus,.sticky-note-theme button:focus {
+    outline: unset;
+}
+.sticky_note-user-button {
+    position: fixed;
+    padding: 20px;
+    background: #B45FF6;
+    z-index: 9;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+.sticky_note-user-button a {
+    color: #fff;
+    text-decoration: none;
+}
+.sticky_note-user-button li {
+    list-style: none;
+}
+ul.user-button-ul {
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+    transition: all 0.4s ease 0s;
+}
+li.note-new-comment {
+    cursor: pointer;
+    color: #fff !important;
+    text-decoration: none;
+    background: #AF0C38;
+    padding: 8px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 15px;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+li.note-old-comments {
+    margin-top: 10px;
+    cursor: pointer;
+    color: #fff !important;
+    /* text-transform: uppercase; */
+    text-decoration: none;
+    background: #469710;
+    padding: 8px 22px;
+    font-size: 15px;
+    font-weight: 400;
+    border-radius: 15px;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+.sticky-notes-user {
+    cursor: pointer;
+    color: #fff !important;
+    text-decoration: none;
+    background: #AF0C38;
+    padding: 8px 15px;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 15px;
+    display: inline-block;
+    border: none;
+    transition: all 0.4s ease 0s;
+    box-shadow: 3px 3px 5px grey;
+}
+.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}
+.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
+}.sticky_note-user-button .top_left{
+    right: 0;
+    top: 5%;
 }

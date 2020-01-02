@@ -25,5 +25,8 @@ jQuery(document).ready(function($){
     jQuery(document.body).on('change', 'select#allcommentpage', function(e){
         jQuery(this).closest('form').submit();
     });
+    jQuery(document.body).on('change', 'select#buttonposition', function(e){
+        jQuery(this).closest('form').submit();
+    });
 
 }); // End Document ready
