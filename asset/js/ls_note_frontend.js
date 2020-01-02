@@ -20,6 +20,12 @@
 
 
     jQuery(document.body).one('click','.supper_sticky_note p', function(evt){
+
+        //e.preventDefault()
+        //jQuery('p, span, li, ...').disableSelection();
+        
+        //$('p, span, li, ...').not('input').disableSelection();
+ 
         // var status = localStorage.getItem("notestatus");
 
         if(jQuery(this).find('sub.new').length == 0 && notesAjax.status == 'active'){
@@ -27,7 +33,7 @@
         var parentClass = $(this).parent().attr('class');
         var currentClass = $(this).attr('class');
         let position = window.getSelection().focusOffset;
-        //console.log('position1: ' + position);
+        console.log('position1: ' + position);
 
         var myAnchorNodeValue = window.getSelection().anchorNode.nodeValue;
         var myAnchorOffset = window.getSelection().anchorOffset;
@@ -39,17 +45,20 @@
 
         // console.log('myFocusNodeLength: ' + myFocusNodeLength);
         // console.log('position2: ' + position);
-        window.getSelection().anchorNode.nodeValue = myAnchorNodeValue.slice(0, myAnchorOffset) + '<sub class="new stickyQuestion" data-parent="'+parentClass+'" data-current="'+currentClass+'" data-position="'+position+'" class="note-question"><span class="note-question-icon-button">' + myAnchorNodeValue.slice(myAnchorOffset);
+        window.getSelection().anchorNode.nodeValue = myAnchorNodeValue.slice(0, myAnchorOffset) + '<sub class="new stickyQuestion" data-parent="'+parentClass+'" data-current="'+currentClass+'" data-position="'+position+'" class="note-question"><span class="note-question-icon-button"></span></sub>' + myAnchorNodeValue.slice(myAnchorOffset);
         
         var myFocusNodeValue = window.getSelection().focusNode.nodeValue;
     
         if(window.getSelection().focusNode.nodeValue.length - myFocusNodeLength > 0) {
             myFocusOffset += window.getSelection().focusNode.nodeValue.length - myFocusNodeLength;
         }
+     
         
         position = myFocusOffset;
-        window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + '</span></sub>' + myFocusNodeValue.slice(myFocusOffset);
-
+        window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + myFocusNodeValue.slice(myFocusOffset);
+        
+        // window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + '</span></sub>' + myFocusNodeValue.slice(myFocusOffset);
+        console.log(myFocusNodeValue);
         var thishtml = jQuery(this).html();
         
         var selection = window.getSelection();
@@ -127,8 +136,15 @@
         var current_page_url = notesAjax.current_page_url;
 
 
-        var textdata = (typeof notesAjax.textval[data_id] != 'undefined' && notesAjax.submitorreply[data_id] == 0) ? notesAjax.textval[data_id] : '';
+        var textdata = (typeof notesAjax.textval[data_id] != 'undefined' && notesAjax.submitorreply[data_id] == 0) ? notesAjax.textval[data_id] : (typeof notesAjax.reply_notes[data_id] != 'undefined') ? notesAjax.reply_notes[data_id] : '';
+        var admin_reply = (typeof notesAjax.admin1st_reply[data_id] != 'undefined' && notesAjax.submitorreply[data_id] == 0) ? notesAjax.admin1st_reply[data_id] : (typeof notesAjax.admin2nd_reply[data_id] != 'undefined') ? notesAjax.admin2nd_reply[data_id] : '';
         
+        var reply = ( admin_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'">Admin reply : '+admin_reply+'</div>' : '';
+
+        console.log(reply);
+        console.log(notesAjax.admin1st_reply[data_id]);
+        console.log(notesAjax.admin2nd_reply[data_id]);
+        //console.log(notesAjax.submitorreply[data_id]);
         var thisElement = element;
         var submitorreply = (notesAjax.submitorreply[data_id] == 0 || typeof notesAjax.submitorreply[data_id] == 'undefined' ) ? 'SUBMIT' : 'REPLY';
         if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = 'Update';
@@ -151,7 +167,9 @@
                     +'<div class="note-top-option-comment-list"><p class="note-go-to-comment">Go to your comments list</p></div>'
                     +'<div class="note-top-option-delete-comment" data-position="'+position+'" data-id="'+data_id+'"><p class="note-top-option-delete-all-comment">Delete your comment</p></div>'
                     +'</div>'
-                    +'</div><textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions..">'+textdata+'</textarea>';
+                    +'</div>'
+                    +reply
+                    +'<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions..">'+textdata+'</textarea>';
                     if(submitorreply !='') text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
                     text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
@@ -185,6 +203,13 @@
           $(".note-top-option").attr("style", "display:none");
           $(".note-top-option-all").attr("style", "display:block");
         });
+
+        jQuery(document.body).on('click', ".sticky-notes-user", function(){
+            $(".sticky-notes-user").attr("style", "display:none");
+            $("ul.user-button-ul").attr("style", "display:block");
+          });
+
+
         jQuery(document.body).on('click', ".color-option", function(){
             $(".note-top-option").attr("style", "display:block");
             $(".note-top-option-all").attr("style", "display:none");
@@ -193,36 +218,43 @@
             switch(classname){
                 case 'color-1 color-option':
                         $(".note-top-option").attr("style", "background-color:#F0B30C");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#FFF7C3");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#FFF7C3");
                         $("button.note-reply").attr("style", "background-color:#F0B30C");
                 break;
                 case 'color-2 color-option':
                         $(".note-top-option").attr("style", "background-color:#CEE9FD");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#E2F0FF");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#E2F0FF");
                         $("button.note-reply").attr("style", "background-color:#CEE9FD");
                 break;
                 case 'color-3 color-option':
                         $(".note-top-option").attr("style", "background-color:#B45FF6");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#EFC9FF");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#EFC9FF");
                         $("button.note-reply").attr("style", "background-color:#B45FF6");
                 break;
                 case 'color-4 color-option':
                         $(".note-top-option").attr("style", "background-color:#F87098");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#FFC9DD");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#FFC9DD");
                         $("button.note-reply").attr("style", "background-color:#F87098");
                 break;
                 case 'color-5 color-option':
                         $(".note-top-option").attr("style", "background-color:#3FD981");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#DEF6D9");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#DEF6D9");
                         $("button.note-reply").attr("style", "background-color:#3FD981");
                 break;
                 case 'color-6 color-option':
                         $(".note-top-option").attr("style", "background-color:#AEAEAE");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#EBEBEB");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#EBEBEB");
                         $("button.note-reply").attr("style", "background-color:#AEAEAE");
                 break;
                 case 'color-7 color-option':
                         $(".note-top-option").attr("style", "background-color:#686868");
+                        $(".sticky-note-theme .admin-reply").attr("style", "background-color:#5D5D5D;color:#ffff");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#5D5D5D;color:#ffff");
                         $("button.note-reply").attr("style", "background-color:#686868");
                 break;
