@@ -1007,20 +1007,21 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             global $post;
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $button_position_class = get_option( 'buttonposition' );
-
-        ?>
-            <div class="sticky_note-user-button <?php echo $button_position_class;?>">
-                <ul class="user-button-ul" style="display:none">
-                    <li class="note-new-comment">
-                        <a href="<?php echo get_the_permalink( $post->ID ) . '?note=1' ?>"><?php _e('New Comment', 'wp_super_sticky_notes'); ?></a>
-                    </li>
-                    <li class="note-old-comments">
-                        <a href="<?php echo $oldCommentUrl; ?>"><?php _e('Old Comment', 'wp_super_sticky_notes'); ?></a>
-                    </li>
-                </ul>
-                <div class="sticky-notes-user"><?php _e('Sticky Notes', 'wp_super_sticky_notes'); ?></div>
-            </div>
-        <?php
+            if ( is_user_logged_in() ) {
+            ?>
+                <div class="sticky_note-user-button <?php echo $button_position_class;?>">
+                    <ul class="user-button-ul" style="display:none">
+                        <li class="note-new-comment">
+                            <a href="<?php echo get_the_permalink( $post->ID ) . '?note=1' ?>"><?php _e('New Comment', 'wp_super_sticky_notes'); ?></a>
+                        </li>
+                        <li class="note-old-comments">
+                            <a href="<?php echo $oldCommentUrl; ?>"><?php _e('Old Comment', 'wp_super_sticky_notes'); ?></a>
+                        </li>
+                    </ul>
+                    <div class="sticky-notes-user"><?php _e('Sticky Notes', 'wp_super_sticky_notes'); ?></div>
+                </div>
+            <?php
+            }
         }
         
                 
