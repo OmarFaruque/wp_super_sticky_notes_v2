@@ -848,29 +848,29 @@ li.note-old-comments {
     transition: all 0.4s ease 0s;
     box-shadow: 3px 3px 5px grey;
 }
-.sticky_note-user-button .top_left{
-    right: 0;
+.sticky_note-user-button.top_left{
+    left: 0;
     top: 5%;
 }
-.sticky_note-user-button .top_left{
+.sticky_note-user-button.top_middle{
     right: 0;
     top: 5%;
-}.sticky_note-user-button .top_left{
-    right: 0;
+}.sticky_note-user-button.top_right{
+    left: 50%;
     top: 5%;
-}.sticky_note-user-button .top_left{
+}.sticky_note-user-button.middle_left{
+    left: 0;
+    top: 50%;
+}.sticky_note-user-button.middle_right{
     right: 0;
-    top: 5%;
-}.sticky_note-user-button .top_left{
-    right: 0;
-    top: 5%;
-}.sticky_note-user-button .top_left{
-    right: 0;
-    top: 5%;
-}.sticky_note-user-button .top_left{
-    right: 0;
-    top: 5%;
-}.sticky_note-user-button .top_left{
+    top: 50%;
+}.sticky_note-user-button.bottom_left{
+    left: 0;
+    bottom: 5%;
+}.sticky_note-user-button.bottom_middle{
+    left: 50%;
+    bottom: 5%;
+}.sticky_note-user-button.bottom_right{
     right: 0;
     top: 5%;
 }
