@@ -1,8 +1,23 @@
    jQuery(document).ready(function($){
     "use strict";
 
-    // Bydefault statid inactive
-    localStorage.setItem("notestatus", 'in-active');
+
+    /*
+    * HIde user comment when click body
+    */
+   jQuery(document.body).on('click', 'span.userHideSticky', function(){
+        jQuery('ul.user-button-ul').hide();
+   });
+
+   /*
+   * Add local store for new comment
+   */
+  jQuery(document).on('click', 'li.note-new-comment a, li#wp-admin-bar-note_new_comment a', function(e){
+    //e.preventDefault();
+    jQuery(this).closest('ul').hide();
+    localStorage.setItem("sticky_comment", 'active');
+  });
+
     //add class
     jQuery(document.body).on('click', 'li#wp-admin-bar-add_sticky_notes a', function(){
         jQuery('body').toggleClass('note_additable');
@@ -20,20 +35,21 @@
 
 
     jQuery(document.body).one('click','.supper_sticky_note p', function(evt){
-
+        
         //e.preventDefault()
         //jQuery('p, span, li, ...').disableSelection();
         
         //$('p, span, li, ...').not('input').disableSelection();
  
-        // var status = localStorage.getItem("notestatus");
-
+        var status = localStorage.getItem("sticky_comment");
+        
         if(jQuery(this).find('sub.new').length == 0 && notesAjax.status == 'active'){
+        
         var content = jQuery(this);
         var parentClass = $(this).parent().attr('class');
         var currentClass = $(this).attr('class');
         let position = window.getSelection().focusOffset;
-        console.log('position1: ' + position);
+        // console.log('position1: ' + position);
 
         var myAnchorNodeValue = window.getSelection().anchorNode.nodeValue;
         var myAnchorOffset = window.getSelection().anchorOffset;
@@ -58,7 +74,7 @@
         window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + myFocusNodeValue.slice(myFocusOffset);
         
         // window.getSelection().focusNode.nodeValue = myFocusNodeValue.slice(0, myFocusOffset) + '</span></sub>' + myFocusNodeValue.slice(myFocusOffset);
-        console.log(myFocusNodeValue);
+        // console.log(myFocusNodeValue);
         var thishtml = jQuery(this).html();
         
         var selection = window.getSelection();
@@ -104,10 +120,15 @@
             },
             url : notesAjax.ajax,
             success:function(data){
-                //alert('dfsfs');
-                // console.log(data);
-                if(data.message == 'no'){
-                    window.location.href = current_page_url;
+                if(data.message){
+                    localStorage.removeItem("sticky_comment");
+                    jQuery('#successMsgSticky').fadeIn('slow', function(){
+                        setTimeout(function(){
+                            jQuery('#successMsgSticky').fadeOut('show');
+                            window.location.href = current_page_url;
+                        }, 10000);
+                    });
+                    
                 }
             }, 
             error:function(){
@@ -135,16 +156,17 @@
         var status = (element.hasClass('old')) ? 'old' : 'new';
         var current_page_url = notesAjax.current_page_url;
 
-
-        var textdata = (typeof notesAjax.textval[data_id] != 'undefined' && notesAjax.submitorreply[data_id] == 0) ? notesAjax.textval[data_id] : (typeof notesAjax.reply_notes[data_id] != 'undefined') ? notesAjax.reply_notes[data_id] : '';
-        var admin_reply = (typeof notesAjax.admin1st_reply[data_id] != 'undefined' && notesAjax.submitorreply[data_id] == 0) ? notesAjax.admin1st_reply[data_id] : (typeof notesAjax.admin2nd_reply[data_id] != 'undefined') ? notesAjax.admin2nd_reply[data_id] : '';
         
+        var textdata = (notesAjax.textval[data_id] != undefined && notesAjax.submitorreply[data_id] == 1) ? notesAjax.textval[data_id] : '';
+        var admin_reply = (notesAjax.admin1st_reply[data_id] != undefined && notesAjax.admin1st_reply[data_id] != '' && notesAjax.submitorreply[data_id] == '1') ? notesAjax.admin1st_reply[data_id] : '';
+        admin_reply = (notesAjax.admin2nd_reply[data_id] != undefined && notesAjax.admin2nd_reply[data_id] != '') ? notesAjax.admin2nd_reply[data_id] : admin_reply;
+        
+        
+        
+
+        var yourcomment = ( textdata != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'">User Comment : '+textdata+'</div>' : '';
         var reply = ( admin_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'">Admin reply : '+admin_reply+'</div>' : '';
 
-        console.log(reply);
-        console.log(notesAjax.admin1st_reply[data_id]);
-        console.log(notesAjax.admin2nd_reply[data_id]);
-        //console.log(notesAjax.submitorreply[data_id]);
         var thisElement = element;
         var submitorreply = (notesAjax.submitorreply[data_id] == 0 || typeof notesAjax.submitorreply[data_id] == 'undefined' ) ? 'SUBMIT' : 'REPLY';
         if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = 'Update';
@@ -168,8 +190,9 @@
                     +'<div class="note-top-option-delete-comment" data-position="'+position+'" data-id="'+data_id+'"><p class="note-top-option-delete-all-comment">Delete your comment</p></div>'
                     +'</div>'
                     +'</div>'
+                    +yourcomment
                     +reply
-                    +'<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions..">'+textdata+'</textarea>';
+                    +'<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions.."></textarea>';
                     if(submitorreply !='') text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
                     text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
@@ -205,8 +228,7 @@
         });
 
         jQuery(document.body).on('click', ".sticky-notes-user", function(){
-            $(".sticky-notes-user").attr("style", "display:none");
-            $("ul.user-button-ul").attr("style", "display:block");
+            $("ul.user-button-ul").show();
           });
 
 

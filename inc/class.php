@@ -161,16 +161,16 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
             $admin1st_reply = $wpdb->get_results("SELECT `id`, `note_reply` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);
             
-            $admin2nd_reply = $wpdb->get_results("SELECT `parent_id`, `note_reply` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);
+            $admin2nd_reply = $wpdb->get_results("SELECT `parent_id`, `note_reply` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id AND `parent_id` != 0", OBJECT);
             
             $admin1st_replys = array();
             foreach($admin1st_reply as $st_reply) $admin1st_replys[$st_reply->id] = $st_reply->note_reply;
 
-            // print_r($admin1st_replys);
+            
 
             $admin2nd_replys = array();
             foreach($admin2nd_reply as $nd_reply) $admin2nd_replys[$nd_reply->parent_id] = $nd_reply->note_reply;
-            // print_r($admin2nd_replys);
+            
 
             wp_enqueue_style( 'larasoftbd_NotetCSS', $this->plugin_url . 'asset/css/note_frontend.css', array(), true, 'all' );
             
@@ -515,16 +515,24 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $status_id = $_POST['status_message'];
 
                 $table_name = $wpdb->prefix . 'super_sticky_notes';
-                $wpdb->update( $table_name,
-                array(
-                        'note_status' => $status
+                if($status == 'delete'){
+                    $delete = $this->wpdb->delete(
+                        $table_name,
+                        array('id' => $status_id),
+                        array('%d')        
+                    );
+                }else{
+                    $wpdb->update( $table_name,
+                    array(
+                            'note_status' => $status
+                        ),
+                    array(
+                        'id'=> $status_id
                     ),
-                array(
-                    'id'=> $status_id
-                ),
-                array('%s'),
-                array('%d')
-                );
+                    array('%s'),
+                    array('%d')
+                    );
+                }
             }
             if (isset($_POST['note_reply_ids']))
             {
@@ -643,18 +651,20 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                 <?php if($note_values['note_status'] == ''){?>
                                     <form method="POST">
                                         <input type="hidden" name="status_message" value="<?php echo $note_values['id']; ?>" />
-                                        <button class="approved" value="Approved" name="status"><?php _e('Approved', 'wp_super_sticky_notes'); ?></button>
-                                        <button class="disapproved" value="Disapproved" name="status"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></button>
+                                        <button class="approved" value="Approved" name="status"><?php _e('Approve', 'wp_super_sticky_notes'); ?></button>
+                                        <button class="disapproved" value="Disapproved" name="status"><?php _e('Disapprove', 'wp_super_sticky_notes'); ?></button>
                                     </form>
                                 <?php }elseif($note_values['note_status'] == 'Approved'){ ?>
                                     <form method="POST">
                                         <input type="hidden" name="status_message" value="<?php echo $note_values['id']; ?>" />
-                                        <button class="disapprovedd" value="Disapproved" name="status"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></button>
+                                        <span class="approved"><?php _e('Approved', 'wp_supper_sticky'); ?></span>
+                                        <button class="disapprovedd" value="delete" name="status"><?php _e('Delete', 'wp_super_sticky_notes'); ?></button>
                                     </form>
                                 <?php }elseif($note_values['note_status'] == 'Disapproved'){ ?> 
                                     <form method="POST">
                                         <input type="hidden" name="status_message" value="<?php echo $note_values['id']; ?>" />
-                                        <button class="approvedd" value="Approved" name="status"><?php _e('Approved', 'wp_super_sticky_notes'); ?></button>
+                                        <span class="disapprovedd"><?php _e('Disapproved', 'wp_supper_sticky'); ?></span>
+                                        <button class="disapprovedd" value="delete" name="status"><?php _e('Delete', 'wp_super_sticky_notes'); ?></button>
                                     </form>
                                 <?php }?> 
                             </td>
@@ -1007,18 +1017,36 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             global $post;
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $button_position_class = get_option( 'buttonposition' );
-
         ?>
+            
+            <div id="successMsgSticky" style="display:none;">
+                <div class="messageInner">
+                    <h4 class="text-center w-100">
+                        <span><?php _e('comments submitted for moderation', 'sticky_none'); ?></span>
+                    </h4>
+                </div>
+            </div>
             <div class="sticky_note-user-button <?php echo $button_position_class;?>">
+            <div id="stickeyItems">
                 <ul class="user-button-ul" style="display:none">
+                    <li class="deleteCo">
+                    <span class="userHideSticky">
+                        <img src="<?php echo $this->plugin_url; ?>/asset/css/images/close.png" alt="Close Icon">
+                    </span>
+                    </li>
                     <li class="note-new-comment">
-                        <a href="<?php echo get_the_permalink( $post->ID ) . '?note=1' ?>"><?php _e('New Comment', 'wp_super_sticky_notes'); ?></a>
+                        <a class="commentLink" href="<?php echo get_the_permalink( $post->ID ) . '?note=1' ?>"><?php _e('New Comment', 'wp_super_sticky_notes'); ?></a>
                     </li>
                     <li class="note-old-comments">
-                        <a href="<?php echo $oldCommentUrl; ?>"><?php _e('Old Comment', 'wp_super_sticky_notes'); ?></a>
+                        <a class="commentLink" href="<?php echo $oldCommentUrl; ?>"><?php _e('Old Comment', 'wp_super_sticky_notes'); ?></a>
                     </li>
                 </ul>
-                <div class="sticky-notes-user"><?php _e('Sticky Notes', 'wp_super_sticky_notes'); ?></div>
+            </div>
+                <div class="sticky-notes-user">
+                    <div class="innericon">
+                        <img src="<?php echo $this->plugin_url; ?>/asset/css/images/speech-bubble-32.png" alt="icon">
+                    </div>
+                </div>
             </div>
         <?php
         }

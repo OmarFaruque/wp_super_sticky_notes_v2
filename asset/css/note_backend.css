@@ -108,17 +108,22 @@ td.note-title a {
     color: #04B89B;
     text-decoration: none !important;
 }
+table.sticky-notes-data-table span.approved,
 table.sticky-notes-data-table button.approved {
     background-color: inherit;
     border: none;
     outline: none;
-    cursor: pointer;
     transition: 0.3s;
     font-size: 12px;
     font-weight: 600;
     color: #04B89B;
     float: left;
 }
+table.sticky-notes-data-table button.approved{
+  cursor: pointer;
+}
+
+
 table.sticky-notes-data-table button.disapproved {
     background-color: inherit;
     border: none;
@@ -130,6 +135,8 @@ table.sticky-notes-data-table button.disapproved {
     color: #EE083D;
     float: left;
 }
+table.sticky-notes-data-table span.disapprovedd:after,
+table.sticky-notes-data-table span.approved:after,
 table.sticky-notes-data-table button.approved:after {
     content: "\|";
     margin-left: 10px;
@@ -145,6 +152,7 @@ table.sticky-notes-data-table button.approvedd {
     font-weight: 600;
     color: #04B89B;
 }
+table.sticky-notes-data-table span.disapprovedd,
 table.sticky-notes-data-table button.disapprovedd {
     background-color: inherit;
     border: none;
@@ -154,6 +162,7 @@ table.sticky-notes-data-table button.disapprovedd {
     font-size: 12px;
     font-weight: 600;
     color: #EE083D;
+    float: left;
 }
 table.sticky-notes-data-table button.reply {
     cursor: pointer;
