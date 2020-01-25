@@ -938,3 +938,7 @@ div#successMsgSticky {
     border-radius: 10px;
     font-weight: 100;
 }
+textarea.sticky-note-text-editor{
+    width: 100%;
+    min-width: 100%;
+}
