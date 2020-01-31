@@ -156,20 +156,20 @@
         var status = (element.hasClass('old')) ? 'old' : 'new';
         var current_page_url = notesAjax.current_page_url;
 
-        
-        var textdata = (notesAjax.textval[data_id] != undefined && notesAjax.submitorreply[data_id] == 1) ? notesAjax.textval[data_id] : '';
-        var admin_reply = (notesAjax.admin1st_reply[data_id] != undefined && notesAjax.admin1st_reply[data_id] != '' && notesAjax.submitorreply[data_id] == '1') ? notesAjax.admin1st_reply[data_id] : '';
+        // notesAjax.submitorreply[data_id] == 1
+        var textdata = (notesAjax.textval[data_id] != undefined) ? notesAjax.textval[data_id] : '';
+        var admin_reply = (notesAjax.admin1st_reply[data_id] != undefined && notesAjax.admin1st_reply[data_id] != '') ? notesAjax.admin1st_reply[data_id] : '';
         admin_reply = (notesAjax.admin2nd_reply[data_id] != undefined && notesAjax.admin2nd_reply[data_id] != '') ? notesAjax.admin2nd_reply[data_id] : admin_reply;
         
         
-        
+        // console.log('textdata: ' + textdata);
 
-        var yourcomment = ( textdata != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'">User Comment : '+textdata+'</div>' : '';
-        var reply = ( admin_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'">Admin reply : '+admin_reply+'</div>' : '';
+        var yourcomment = ( textdata != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>User Comment '+notesAjax.note_date[data_id]+' :</strong> '+textdata+'</div>' : '';
+        var reply = ( admin_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply '+notesAjax.replay_date[data_id]+' :</strong> '+admin_reply+'</div>' : '';
 
         var thisElement = element;
         var submitorreply = (notesAjax.submitorreply[data_id] == 0 || typeof notesAjax.submitorreply[data_id] == 'undefined' ) ? 'SUBMIT' : 'REPLY';
-        if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = 'Update';
+        if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = '';
         if(notesAjax.login_status == 'logout') submitorreply = '';
         
         element.qtip({
@@ -211,7 +211,7 @@
             events: {
                 hide: function(event, api) {
                     var text_content = jQuery(this).find('textarea').val();
-                    if(notesAjax.login_status != 'logout'){
+                    if(submitorreply != '' && text_content != ''){
                         ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url);
                     }
                 }

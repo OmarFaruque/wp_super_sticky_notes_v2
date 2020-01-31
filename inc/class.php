@@ -115,9 +115,12 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         /*
         * Appointment backend Script
         */
-        function larasoftNote_backend_script(){
-            
+        function larasoftNote_backend_script($hook){
+            if($hook != 'toplevel_page_sticky-notes-menu') return false;
+            wp_enqueue_style( 'dataTableCSS', 'https://cdn.datatables.net/v/dt/dt-1.10.20/datatables.min.css', array(), true, 'all' );
             wp_enqueue_style( 'larasoftNoteCSS', $this->plugin_url . 'asset/css/note_backend.css', array(), true, 'all' );
+            
+            wp_enqueue_script( 'dataTableJS', 'https://cdn.datatables.net/v/dt/dt-1.10.20/datatables.min.js', array(), true );
             wp_enqueue_script( 'larasoftNote', $this->plugin_url . 'asset/js/ls_note_backend.js', array(), true );
             //ajax
             wp_localize_script( 'larasoftNote', 'notesAjax', admin_url( 'admin-ajax.php' ));
@@ -136,6 +139,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $noteoptions = json_decode(stripcslashes($_COOKIE['noteoptions']));
             endif;
 
+
             $current_user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] : get_current_user_id();
             $current_page_id = $post->ID;
             $current_page_url = get_permalink( $current_page_id );
@@ -143,31 +147,28 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $status = (isset($_REQUEST['note']) && $_REQUEST['note'] == 1) ? 'active' : '';
 
             $table_name = $wpdb->prefix . 'super_sticky_notes';
-            $note_values = $wpdb->get_results("SELECT `id`, `note_values` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);  
+            $note_values = $wpdb->get_results("SELECT * FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);  
 
-            $next_conv_allowed = $wpdb->get_results("SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);
-
-            $reply_notes = $wpdb->get_results("SELECT `parent_id`, `note_values` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);  
+            $next_conv_allowed = $note_values;
+            $reply_notes = $note_values;
 
             $note_valuess = array();
-            foreach($note_values as $single) $note_valuess[$single->id] = $single->note_values;
-
             $next_conv_alloweds = array();
-            foreach($next_conv_allowed as $next_conv) $next_conv_alloweds[$next_conv->id] = $next_conv->next_conv_allowed;
-
             $reply_notess = array();
-            foreach($reply_notes as $reply_note) $reply_notess[$reply_note->parent_id] = $reply_note->note_values;
-
-
-            $admin1st_reply = $wpdb->get_results("SELECT `id`, `note_reply` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);
+            $admin1st_replys = array();
+            $note_date = array();
+            $replay_date = array();
+            foreach($note_values as $single){
+                $note_valuess[$single->id] = $single->note_values;
+                $next_conv_alloweds[$single->id] = $single->next_conv_allowed;
+                $reply_notess[$single->parent_id] = $single->note_values;
+                $admin1st_replys[$single->id] = $single->note_reply;
+                $note_date[$single->id] = date('d/m/Y', strtotime($single->insert_time));
+                $replay_date[$single->id] = date('d/m/Y', strtotime($single->note_repliedOn));
+            } 
             
             $admin2nd_reply = $wpdb->get_results("SELECT `parent_id`, `note_reply` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id AND `parent_id` != 0", OBJECT);
             
-            $admin1st_replys = array();
-            foreach($admin1st_reply as $st_reply) $admin1st_replys[$st_reply->id] = $st_reply->note_reply;
-
-            
-
             $admin2nd_replys = array();
             foreach($admin2nd_reply as $nd_reply) $admin2nd_replys[$nd_reply->parent_id] = $nd_reply->note_reply;
             
@@ -195,6 +196,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'textval' => $note_valuess,
                     'submitorreply' => $next_conv_alloweds,
                     'status' => $status,
+                    'replay_date' => $replay_date,
+                    'note_date' => $note_date,
                     'current_page_url' => $current_page_url,
                     'reply_notes' => $reply_notess,
                     'admin1st_reply' => $admin1st_replys,
@@ -374,9 +377,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         
         
         function filter_the_content_in_the_main_loop( $content ) {
-            if(get_option( 'visitor_allowed', 1 ) == 0){
-                return $content;
-            }
+            // if(get_option( 'visitor_allowed', 1 ) == 0){
+            //     return $content;
+            // }
             $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
             // Check if we're inside the main loop in a single post page.
             //if ( is_single() && in_the_loop() && is_main_query() ) { c
@@ -602,47 +605,57 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     <div class="tab-search">
                         <form method="POST">
                             <input type="text" name="search_value" placeholder="Search here..." required>
-                            <button class="tab-search-button" type="submit">Search</button>
+                            <button class="tab-search-button" type="submit"><?php _e('Search', 'sticky'); ?></button>
                         </form>
                     </div>
                 </div>
 
                 <div id="all" class="tabcontent" style="display:block;" >
 
-                    <table class="sticky-notes-data-table">
-                        <tr class="note-heading-wrapper">
-                            <th><?php _e('User', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Asked Question', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Page/Post', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('AskedOn', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Status', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Action', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Reply', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('RepliedOn', 'wp_super_sticky_notes'); ?></th>
-                        </tr>
+                    <table class="sticky-notes-data-table jquerydatatable">
+                        <thead>
+                            <tr class="note-heading-wrapper">
+                                <th><?php _e('User', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('Asked Question', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('Page/Post', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('AskedOn', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('Status', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('Action', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('Reply', 'wp_super_sticky_notes'); ?></th>
+                                <th><?php _e('RepliedOn', 'wp_super_sticky_notes'); ?></th>
+                            </tr>
+                        </thead>
                         <?php
                             global $wpdb;
 
                             if (isset($_POST['search_value']))
                             {   
+                                
                                 $search_value = $_POST['search_value'];
                                 $table_name = $wpdb->prefix . 'super_sticky_notes';
-                                $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name 
-                                WHERE `note_values` LIKE '%".$search_value."%' 
-                                OR `insert_time` LIKE '%".$search_value."%'
-                                OR `note_status` LIKE '%".$search_value."%'
-                                OR `note_reply` LIKE '%".$search_value."%' 
-                                ", OBJECT);
+                                $table_user = $wpdb->prefix . 'users';
+                                $qry = "SELECT * FROM $table_name ssn 
+                                LEFT JOIN $table_user u ON ssn.`user_id` = u.`ID`  
+                                WHERE ssn.`note_values` LIKE '%".$search_value."%' 
+                                OR ssn.`insert_time` LIKE '%".$search_value."%'
+                                OR ssn.`note_status` LIKE '%".$search_value."%'
+                                OR ssn.`note_reply` LIKE '%".$search_value."%' 
+                                OR u.`user_nicename` LIKE '%".$search_value."%' 
+                                ORDER BY ssn.`insert_time` DESC
+                                ";
+
+                                $all_valus_notes = $wpdb->get_results( $qry, OBJECT);
                                 $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
                             }else{
 
                             $table_name = $wpdb->prefix . 'super_sticky_notes';
-                            $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name", OBJECT);                   
+                            $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name ssn ORDER BY ssn.`insert_time` DESC", OBJECT);                   
                             $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
                             }
                             foreach ($all_valus_notes as $note_values){
                         ?>
-                        <tr>
+                       <tbody>
+                       <tr>
                             <td><?php $author_obj = get_user_by('id', $note_values['user_id']); echo $author_obj->data->user_nicename; ?></td>
                             <td><?php echo $note_values['note_values']; ?></td>
                             <td class="note-title"><a href="<?php echo get_permalink($note_values['page_id']); ?>" target="_blank"><?php echo $note_values['title']; ?></a></td>
@@ -712,6 +725,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             <td class="note-class-view"><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><p><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></p></div> <?php }else{ echo $note_values['note_reply']; } ?></td>
                             <td><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><p><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></p></div> <?php }else{ echo $note_values['note_repliedOn']; } ?></td>
                         </tr>
+                       </tbody>
                         <?php
                             }
                         ?>
@@ -1014,6 +1028,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         }
 
         function user_button(){
+            if(!is_user_logged_in()){
+                return false;
+            }
             global $post;
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $button_position_class = get_option( 'buttonposition' );

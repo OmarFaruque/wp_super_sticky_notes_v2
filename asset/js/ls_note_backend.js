@@ -29,4 +29,9 @@ jQuery(document).ready(function($){
         jQuery(this).closest('form').submit();
     });
 
+
+    if(jQuery('.jquerydatatable').length){
+        jQuery('.jquerydatatable').DataTable();
+    }
+
 }); // End Document ready
