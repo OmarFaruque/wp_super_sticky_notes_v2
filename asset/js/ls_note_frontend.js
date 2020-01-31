@@ -126,7 +126,7 @@
                         setTimeout(function(){
                             jQuery('#successMsgSticky').fadeOut('show');
                             window.location.href = current_page_url;
-                        }, 10000);
+                        }, 4000);
                     });
                     
                 }

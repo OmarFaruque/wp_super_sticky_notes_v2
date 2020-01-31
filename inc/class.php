@@ -147,7 +147,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $status = (isset($_REQUEST['note']) && $_REQUEST['note'] == 1) ? 'active' : '';
 
             $table_name = $wpdb->prefix . 'super_sticky_notes';
-            $note_values = $wpdb->get_results("SELECT * FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id ", OBJECT);  
+            $ary = "SELECT * FROM $table_name WHERE `page_id` = $current_page_id";
+            if(get_option( 'visitor_allowed', 0 ) != 1) $ary .= " AND `user_id` = ".$current_user_id."";
+
+            $note_values = $wpdb->get_results($ary, OBJECT);  
 
             $next_conv_allowed = $note_values;
             $reply_notes = $note_values;
@@ -167,7 +170,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $replay_date[$single->id] = date('d/m/Y', strtotime($single->note_repliedOn));
             } 
             
-            $admin2nd_reply = $wpdb->get_results("SELECT `parent_id`, `note_reply` FROM $table_name WHERE `user_id` = $current_user_id AND `page_id` = $current_page_id AND `parent_id` != 0", OBJECT);
+            $sqry = "SELECT `parent_id`, `note_reply` FROM $table_name WHERE `page_id` = $current_page_id AND `parent_id` != 0";
+            if(get_option( 'visitor_allowed', 0 ) != 1) $sqry .= " AND `user_id` = ".$current_user_id."";
+
+            $admin2nd_reply = $wpdb->get_results($sqry, OBJECT);
+            
             
             $admin2nd_replys = array();
             foreach($admin2nd_reply as $nd_reply) $admin2nd_replys[$nd_reply->parent_id] = $nd_reply->note_reply;
@@ -387,18 +394,24 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $current_page_id = get_the_ID();
                 $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
                 $table_name = $wpdb->prefix . 'super_sticky_notes';
-                $all_page_id = $wpdb->get_results("SELECT `page_id` FROM $table_name WHERE `user_id` = $user_id", OBJECT);
-                $all_page_ids = array();
-                foreach ($all_page_id as $value)
-                { 
-                    $all_page_ids[] = $value->page_id;
-                }
+                
+               
                 $show_values = array();
-                if(!isset($_REQUEST['note']) && in_array($current_page_id, $all_page_ids))
+                $approved = 'Approved';
+
+                $qrry = "SELECT `current_Class` FROM $table_name WHERE `page_id` = ".$current_page_id." AND `note_status` = '".$approved."'";
+                if(get_option( 'visitor_allowed', 0 ) != 1) $qrry .= " AND `user_id` = ".$user_id."";
+                $qrry .= " GROUP BY `current_Class`";
+                
+
+                $all_current_Class = $wpdb->get_results($qrry, OBJECT);
+
+
+                
+
+                if(!isset($_REQUEST['note']) && $all_current_Class)
                 {
                     // // echo 'yes';
-                    $approved = 'Approved';
-                    $all_current_Class = $wpdb->get_results("SELECT `current_Class` FROM $table_name WHERE `user_id` = $user_id AND `page_id` = $current_page_id AND `note_status` = '".$approved."' GROUP BY `current_Class`", OBJECT);
                     $all_current_Classs = array();
                     foreach ($all_current_Class as $value)
                     { 
@@ -436,23 +449,33 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         
                         $real_values = $elements->item(0)->nodeValue;
                         $approved = 'Approved';
-                        $all_note_position = $wpdb->get_results("SELECT `note_position` FROM $table_name WHERE `current_Class` = '".$classname."' AND `user_id` = $user_id AND `page_id` = $current_page_id AND `note_status` = '".$approved."' ORDER BY `note_position`", OBJECT);
-                
+
+                        $qry = "SELECT `note_position` FROM $table_name WHERE `current_Class` = '".$classname."' AND `page_id` = $current_page_id AND `note_status` = '".$approved."'";
+                        if(get_option( 'visitor_allowed', 0 ) != 1) $qry .= " AND `user_id` = ".$user_id."";
+                        $qry .= " ORDER BY `note_position`";
+
+                        
+
+
+                        $all_note_position = $wpdb->get_results($qry, OBJECT);
+
                         $all_note_positions = array();
                         foreach ($all_note_position as $note_position)
                         { 
                             $all_note_positions[] = $note_position->note_position;
                         }
-                        // echo '<pre>';
-                        // print_r($all_note_positions);
-                        // echo '</pre>';
+                        
                         
                         $real_values_in_array = array();
                         $real_values_in_array = str_split($real_values, 1);
 
                         $my_html = 0;
                         foreach ($all_note_positions as $single_positions) {
-                            $data_id = $wpdb->get_row("SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `current_Class` = '".$classname."' AND `user_id` = $user_id AND `page_id` = $current_page_id AND `note_position` = $single_positions AND `note_status` = '".$approved."' ", OBJECT);
+                            $ary = "SELECT `id`, `next_conv_allowed` FROM $table_name WHERE `current_Class` = '".$classname."' AND `page_id` = $current_page_id AND `note_position` = $single_positions AND `note_status` = '".$approved."'";
+                            if(get_option( 'visitor_allowed', 0 ) != 1) $ary .= " AND `user_id` = $user_id";
+
+
+                            $data_id = $wpdb->get_row($ary, OBJECT);
                             $data_ids = json_decode(json_encode($data_id), true);
                             // echo 'Ids<br/><pre>';
                             // print_r($data_ids);
@@ -1038,9 +1061,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             
             <div id="successMsgSticky" style="display:none;">
                 <div class="messageInner">
-                    <h4 class="text-center w-100">
+                    <h5 class="text-center w-100">
                         <span><?php _e('comments submitted for moderation', 'sticky_none'); ?></span>
-                    </h4>
+                    </h5>
                 </div>
             </div>
             <div class="sticky_note-user-button <?php echo $button_position_class;?>">
