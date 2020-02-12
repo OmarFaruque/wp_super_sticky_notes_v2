@@ -820,6 +820,7 @@ li.note-new-comment {
     border-radius: 15px;
     border: none;
     transition: all 0.4s ease 0s;
+    margin: 0;
 }
 li.note-old-comments {
     cursor: pointer;
@@ -831,6 +832,7 @@ li.note-old-comments {
     border-radius: 15px;
     border: none;
     transition: all 0.4s ease 0s;
+    margin: 0;
 }
 .sticky-notes-user {
     cursor: pointer;
@@ -900,7 +902,7 @@ li.note-old-comments {
 div#stickeyItems {
     position: absolute;
     right: 0;
-    min-width: 122px;
+    min-width: 130px;
     background-color: #fff;
     border-radius: 3px;
     box-shadow: 0 0 0.5em #aaa;
@@ -931,7 +933,7 @@ div#successMsgSticky {
     text-align: center;
 }
 .messageInner span {
-    font-size: 20px;
+    font-size: 12px;
     background-color: rgb(29, 191, 115);
     color: white;
     padding: 12px 20px;
@@ -941,4 +943,7 @@ div#successMsgSticky {
 textarea.sticky-note-text-editor{
     width: 100%;
     min-width: 100%;
+}
+div#stickeyItems ul li a {
+    font-size: 15px;
 }

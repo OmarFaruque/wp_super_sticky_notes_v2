@@ -102,22 +102,27 @@
         var user_id = notesAjax['user_id'];
         var title = notesAjax['title'];
        
-        if(typeof data_id == 'undefined') data_id = '';
-   
+        // console.log('data id: ' + data_id);
+
+        // if(typeof data_id == 'undefined') data_id = '';
+        
+        var formdata = {
+            'position'                : position,
+            'current_page_id'         : current_page_id,
+            'parentClass'             : parntclass,
+            'user_id'                 : user_id,
+            'text_content'            : text_content,
+            'currentClass'            : currentClass,
+            'title'                   : title,
+            'action'                  : 'sendtonotesajax' 
+        };
+
+        // console.log(formdata);
+
         jQuery.ajax({
            type : 'post',
            dataType: 'json',
-            data : {
-                'position'                : position,
-                'current_page_id'         : current_page_id,
-                'parentClass'             : parntclass,
-                'user_id'                 : user_id,
-                'text_content'            : text_content,
-                'currentClass'            : currentClass,
-                'title'                   : title,
-                'data_id'                 : data_id,
-                'action'                  : 'sendtonotesajax' 
-            },
+            data : formdata,
             url : notesAjax.ajax,
             success:function(data){
                 if(data.message){
@@ -153,23 +158,25 @@
         var position = element.closest('sub').data('position');
         var currentClass = element.closest('sub').data('current');
         var data_id = element.closest('sub').data('id');
+        
+        data_id = (typeof data_id != 'undefined') ? data_id.toString().split(',') : [];
         var status = (element.hasClass('old')) ? 'old' : 'new';
         var current_page_url = notesAjax.current_page_url;
 
         // notesAjax.submitorreply[data_id] == 1
-        var textdata = (notesAjax.textval[data_id] != undefined) ? notesAjax.textval[data_id] : '';
-        var admin_reply = (notesAjax.admin1st_reply[data_id] != undefined && notesAjax.admin1st_reply[data_id] != '') ? notesAjax.admin1st_reply[data_id] : '';
-        admin_reply = (notesAjax.admin2nd_reply[data_id] != undefined && notesAjax.admin2nd_reply[data_id] != '') ? notesAjax.admin2nd_reply[data_id] : admin_reply;
+        var yourcomment = '', 
+        submitorreply = 'SUBMIT';
+        data_id.forEach(function(single_id){            
+            if(notesAjax.notes[single_id] != undefined){
+                yourcomment += ( notesAjax.notes[single_id].note_values != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
+                yourcomment += ( notesAjax.notes[single_id].note_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply on '+notesAjax.notes[single_id].note_repliedOn+' :</strong> '+notesAjax.notes[single_id].note_reply+'</div>' : '';
+                submitorreply = (notesAjax.notes[single_id].next_conv_allowed == 0 ) ? 'SUBMIT' : 'REPLY';
+                if(notesAjax.notes[single_id].user_id == notesAjax.user_id && notesAjax.notes[single_id].next_conv_allowed == 0) submitorreply = '';
+            }
+        });
         
-        
-        // console.log('textdata: ' + textdata);
-
-        var yourcomment = ( textdata != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>User Comment '+notesAjax.note_date[data_id]+' :</strong> '+textdata+'</div>' : '';
-        var reply = ( admin_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply '+notesAjax.replay_date[data_id]+' :</strong> '+admin_reply+'</div>' : '';
-
         var thisElement = element;
-        var submitorreply = (notesAjax.submitorreply[data_id] == 0 || typeof notesAjax.submitorreply[data_id] == 'undefined' ) ? 'SUBMIT' : 'REPLY';
-        if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = '';
+        // if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = '';
         if(notesAjax.login_status == 'logout') submitorreply = '';
         
         element.qtip({
@@ -191,7 +198,6 @@
                     +'</div>'
                     +'</div>'
                     +yourcomment
-                    +reply
                     +'<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions.."></textarea>';
                     if(submitorreply !='') text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
                     text+='</div>';
