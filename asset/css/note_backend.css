@@ -495,3 +495,9 @@ p.checked-message {
 table.sticky-notes-data-table .text-left {
   text-align: left;
 }
+div.dataTables_length select,
+div#DataTables_Table_0_length select {
+  width: unset;
+  margin-top: 0px;
+  margin-bottom: 3px;
+}

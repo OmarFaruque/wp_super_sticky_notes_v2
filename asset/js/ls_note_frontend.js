@@ -165,24 +165,31 @@
 
         // notesAjax.submitorreply[data_id] == 1
         var yourcomment = '', 
+        current_user_data = '',
         submitorreply = 'SUBMIT';
         data_id.forEach(function(single_id){            
             if(notesAjax.notes[single_id] != undefined){
                 yourcomment += ( notesAjax.notes[single_id].note_values != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
                 yourcomment += ( notesAjax.notes[single_id].note_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply on '+notesAjax.notes[single_id].note_repliedOn+' :</strong> '+notesAjax.notes[single_id].note_reply+'</div>' : '';
-                submitorreply = (notesAjax.notes[single_id].next_conv_allowed == 0 ) ? 'SUBMIT' : 'REPLY';
-                if(notesAjax.notes[single_id].user_id == notesAjax.user_id && notesAjax.notes[single_id].next_conv_allowed == 0) submitorreply = '';
+                if(notesAjax.notes[single_id].user_id == notesAjax.user_id) current_user_data = single_id;
             }
         });
         
+        // console.log(current_user_data);
+        if(notesAjax.notes[current_user_data] != undefined && notesAjax.notes[current_user_data].user_id == notesAjax.user_id && notesAjax.notes[current_user_data].next_conv_allowed == 1) submitorreply = 'REPLY';
+        if(notesAjax.notes[current_user_data] != undefined && notesAjax.notes[current_user_data].user_id == notesAjax.user_id && notesAjax.notes[current_user_data].next_conv_allowed == 0) submitorreply = '';
         var thisElement = element;
         // if(status == 'old' && submitorreply == 'SUBMIT' ) submitorreply = '';
-        if(notesAjax.login_status == 'logout') submitorreply = '';
+        var loginAllert = '';
+        if(notesAjax.login_status == 'logout'){
+            submitorreply = '';
+            loginAllert = notesAjax.login_alert;
+        } 
         
         element.qtip({
             content: function() 
                 {
-                    var text = '<div data-parent="'+parntclass+'" data-current="'+currentClass+'" data-id="'+data_id+'" data-position="'+position+'" class="sticky-note-theme">'
+                    var text = '<div style="background-color:'+notesAjax.notetextbg+'" data-parent="'+parntclass+'" data-current="'+currentClass+'" data-id="'+data_id+'" data-position="'+position+'" class="sticky-note-theme">'
                     +'<div class="note-top-option" style="background-color:'+notesAjax.nottopcolor+'">'
                     +'<div class="note-plus-button"><div class="note-plus-icon-button"></div></div>'
                     +'<div class="note-color-button"><div class="note-color-icon-button"></div></div>'
@@ -197,8 +204,13 @@
                     +'<div class="note-top-option-delete-comment" data-position="'+position+'" data-id="'+data_id+'"><p class="note-top-option-delete-all-comment">Delete your comment</p></div>'
                     +'</div>'
                     +'</div>'
-                    +yourcomment
-                    +'<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions.."></textarea>';
+                    +yourcomment;
+                    if(loginAllert == ''){
+                        text+='<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions.."></textarea>';
+                    }else{
+                        text+='<div style="background-color:'+notesAjax.notetextbg+'" class="login_alert active"><div class="alert_inside">'+loginAllert+'</div></div>';
+                    }   
+
                     if(submitorreply !='') text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
                     text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){

@@ -141,7 +141,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             endif;
 
 
-            $current_user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] : get_current_user_id();
+            $current_user_id = get_current_user_id();
             $current_page_id = $post->ID;
             $current_page_url = get_permalink( $current_page_id );
 
@@ -160,39 +160,23 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             
 
             $next_conv_allowed = $note_values;
-            $reply_notes = $note_values;
 
-            $note_valuess = array();
+            
             $next_conv_alloweds = array();
-            $reply_notess = array();
-            $admin1st_replys = array();
             $note_date = array();
             $replay_date = array();
             $note_user = array();
             $notes = array();
             foreach($note_values as $single){
                 $user = get_user_by('id', $single->user_id);
-                $note_valuess[$single->id] = $single->note_values;
                 $next_conv_alloweds[$single->id] = $single->next_conv_allowed;
-                $reply_notess[$single->parent_id] = $single->note_values;
-                $admin1st_replys[$single->id] = $single->note_reply;
                 $note_date[$single->id] = date('d/m/Y', strtotime($single->insert_time));
                 $replay_date[$single->id] = date('d/m/Y', strtotime($single->note_repliedOn));
                 $note_user[$single->id] = $user->user_nicename;
                 $notes[$single->id] = $single;
             } 
             
-            // echo '<pre>';
-            // print_r($note_valuess);
-            // echo '</pre>';
-            $sqry = "SELECT `parent_id`, `note_reply` FROM $table_name WHERE `page_id` = $current_page_id AND `parent_id` != 0";
-            if(get_option( 'visitor_allowed', 0 ) != 1) $sqry .= " AND `user_id` = ".$current_user_id."";
-
-            $admin2nd_reply = $wpdb->get_results($sqry, OBJECT);
             
-            
-            $admin2nd_replys = array();
-            foreach($admin2nd_reply as $nd_reply) $admin2nd_replys[$nd_reply->parent_id] = $nd_reply->note_reply;
             
 
             wp_enqueue_style( 'larasoftbd_NotetCSS', $this->plugin_url . 'asset/css/note_frontend.css', array(), true, 'all' );
@@ -215,21 +199,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'login_status' => (is_user_logged_in()) ? 'login':'logout',
                     'nottopcolor' => (isset($noteoptions->topoption)) ? $noteoptions->topoption : '',
                     'notetextbg' => (isset($noteoptions->texteditorbg)) ? $noteoptions->texteditorbg : '',
-                    
-                    'textval' => $note_valuess,
                     'submitorreply' => $next_conv_alloweds,
                     'status' => $status,
                     'replay_date' => $replay_date,
                     'note_date' => $note_date,
                     'current_page_url' => $current_page_url,
-                    'reply_notes' => $reply_notess,
-                    'admin1st_reply' => $admin1st_replys,
-                    'admin2nd_reply' => $admin2nd_replys,
                     'notes' => $notes,
-
-
-                    'note_user' => $note_user
-
+                    'note_user' => $note_user,
+                    'login_alert' => __('please login to comment', 'notes')
                 )
             );
             
@@ -439,7 +416,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
                         $my_html = 0;
                         foreach ($all_note_positions as $single_positions) {
-                            $ary = "SELECT `id`, `parent_class`, `next_conv_allowed` FROM $table_name WHERE `current_Class` = '".$classname."' AND `page_id` = $current_page_id AND `note_position` = $single_positions AND `note_status` = '".$approved."'";
+                            $ary = "SELECT `id`, `parent_class`, `user_id`, `next_conv_allowed` FROM $table_name WHERE `current_Class` = '".$classname."' AND `page_id` = $current_page_id AND `note_position` = $single_positions AND `note_status` = '".$approved."'";
                             if(get_option( 'visitor_allowed', 0 ) != 1) $ary .= " AND `user_id` = $user_id";
 
 
@@ -448,15 +425,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             
 
                             $data_idd = array();
+                            $dataActive = '';
                             foreach($data_ids as $k => $singleid){
                                 array_push($data_idd, $singleid['id']);
+                                $parent_class = $singleid['parent_class'];
+                                if($singleid['user_id'] == get_current_user_id() && $singleid['next_conv_allowed'] == 1) $dataActive = 'allowed';
                             }
                             $data_idd = implode(',',$data_idd);
-                            // echo 'Ids<br/><pre>';
-                            // print_r($data_idd);
-                            // echo '</pre>';
-                            $parent_class = $data_ids[0]['parent_class'];
-                            $dataActive = ($data_ids[0]['next_conv_allowed'] == 1) ? 'allowed' : '';
+                            
 
                             $single_position = $single_positions + $my_html;
 
@@ -599,12 +575,12 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <button class="tablinks" onclick="openTab(event, 'disapproved')"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></button><div class="tab-icons"></div>
                         <button class="tablinks" onclick="openTab(event, 'settings')"><?php _e('Settings', 'wp_super_sticky_notes'); ?></button>
                     </div>
-                    <div class="tab-search">
+                    <!-- <div class="tab-search">
                         <form method="POST">
                             <input type="text" name="search_value" placeholder="Search here..." required>
-                            <button class="tab-search-button" type="submit"><?php _e('Search', 'sticky'); ?></button>
+                            <button class="tab-search-button" type="submit"><?php // _e('Search', 'sticky'); ?></button>
                         </form>
-                    </div>
+                    </div> -->
                 </div>
 
                 <div id="all" class="tabcontent" style="display:block;" >
@@ -648,10 +624,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             $table_name = $wpdb->prefix . 'super_sticky_notes';
                             $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name ssn ORDER BY ssn.`insert_time` DESC", OBJECT);                   
                             $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
-                            }
-                            foreach ($all_valus_notes as $note_values){
-                        ?>
-                       <tbody>
+                            } ?>
+
+                        <tbody>
+                        <?php    foreach ($all_valus_notes as $note_values){ ?>
                        <tr>
                             <td><?php $author_obj = get_user_by('id', $note_values['user_id']); echo $author_obj->data->user_nicename; ?></td>
                             <td><?php echo $note_values['note_values']; ?></td>
@@ -722,16 +698,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             <td class="note-class-view"><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><p><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></p></div> <?php }else{ echo $note_values['note_reply']; } ?></td>
                             <td><?php if($note_values['note_status'] == 'Disapproved'){ ?> <div class="note-disapproved"><p><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></p></div> <?php }else{ echo $note_values['note_repliedOn']; } ?></td>
                         </tr>
-                       </tbody>
-                        <?php
-                            }
-                        ?>
+                        <?php } ?>
+                        </tbody>
                     </table>
                 </div>
                 
                 <div id="approved" class="tabcontent">
-
-                    <table class="sticky-notes-data-table">
+                    <table class="sticky-notes-data-table jquerydatatable">
+                        <thead>
                         <tr class="note-heading-wrapper">
                             <th><?php _e('User', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Asked Question', 'wp_super_sticky_notes'); ?></th>
@@ -742,6 +716,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             <th><?php _e('Reply', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('RepliedOn', 'wp_super_sticky_notes'); ?></th>
                         </tr>
+                        </thead>
+                        <tbody>
                         <?php
                             global $wpdb;
 
@@ -834,12 +810,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <?php
                             }
                         ?>
+                        </tbody>
                     </table>
 
                 </div>
                 <div id="disapproved" class="tabcontent">
 
-                    <table class="sticky-notes-data-table">
+                    <table class="sticky-notes-data-table jquerydatatable">
+                    <thead>
                         <tr class="note-heading-wrapper">
                             <th><?php _e('User', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Asked Question', 'wp_super_sticky_notes'); ?></th>
@@ -850,6 +828,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             <th><?php _e('Reply', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('RepliedOn', 'wp_super_sticky_notes'); ?></th>
                         </tr>
+                        </thead>
+                        <tbody>
                         <?php
                             global $wpdb;
 
@@ -942,6 +922,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <?php
                             }
                         ?>
+                        </tbody>
                     </table>
 
                 </div>
@@ -1036,7 +1017,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             <div id="successMsgSticky" style="display:none;">
                 <div class="messageInner">
                     <h5 class="text-center w-100">
-                        <span><?php _e('Thank You! Comment is submitted for approval.', 'sticky_none'); ?></span>
+                        <span><?php _e('Thank you! Your comments submitted for moderation.', 'sticky_none'); ?></span>
                     </h5>
                 </div>
             </div>

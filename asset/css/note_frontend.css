@@ -779,6 +779,7 @@ div.qtip-content button:focus {
     padding: 10px;
     line-height: normal;
     background-color: #FFF7C3;
+    border-bottom: 1px solid #ddd;
 }
 .your-comment {
     border-bottom: 1px solid #ddd;
@@ -946,4 +947,10 @@ textarea.sticky-note-text-editor{
 }
 div#stickeyItems ul li a {
     font-size: 15px;
+}
+.login_alert.active {
+    text-align: center;
+    font-size: 17px;
+    color: indianred;
+    padding-top: 30px;
 }
