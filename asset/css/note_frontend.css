@@ -188,6 +188,7 @@ textarea.sticky-note-text-editor {
     margin: 16px;
     height: 26px;
     cursor: pointer;
+    display: none;
 }
 .note-color-icon-button{
     background-image: url(images/menu.png);
@@ -721,11 +722,12 @@ button.note-reply {
     position: absolute;
 }
 .note-top-option-delete-comment {
-    height: 58px;
+    height: 0px;
     top: 116px;
     background: #fff;
     width: 100%;
     position: absolute;
+    display: none;
 }
 p.note-go-to-comment {
     color: #727272;
@@ -742,7 +744,7 @@ p.note-go-to-comment:before {
     height: 36px;
     position: absolute;
     margin-left: -32px;
-    margin-top: -4px;
+    margin-top: 4px;
 }
 p.note-top-option-delete-all-comment {
     color: #F90A0A;
