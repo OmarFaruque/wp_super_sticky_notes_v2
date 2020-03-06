@@ -85,6 +85,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             global $wp_admin_bar;
             global $post;
             // echo 'pageid : ' . $post->ID;
+            if(!isset($post->ID)){
+                return;
+            }
+
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $wp_admin_bar->add_menu( array(
                 'id'        => 'admin_bar_custom_menu',
@@ -96,7 +100,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 'id'        => 'note_new_comment',
                 'title'     => __( 'New Comment', 'some-textdomain' ),
                 'href'      => get_the_permalink( $post->ID ) . '?note=1',
+              
             ) );
+
+          
             $wp_admin_bar->add_menu( array(
                 'parent'    => 'admin_bar_custom_menu',
                 'id'        => 'note_old_comments',
@@ -459,9 +466,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     
                 }
                 else{
+                    libxml_use_internal_errors(true);
                     $content = '<div class="supper_sticky_note">' . $content . '</div>';
                     $DOM = new DOMDocument();
                     $DOM->loadHTML($content);
+                    libxml_clear_errors();
                     $list = $DOM->getElementsByTagName('p');
                     $i = 0;
                     foreach($list as $p){
