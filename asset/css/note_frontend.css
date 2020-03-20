@@ -956,3 +956,14 @@ div#stickeyItems ul li a {
     color: indianred;
     padding-top: 30px;
 }
+
+label.priv_label {
+    display: inline-block;
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+}
+label.priv_label input
+{
+    margin-right:5px;
+}

@@ -17,6 +17,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $this->plugin_dir 				= wp_super_sticky_notesDIR;
             $this->wpdb 					= $wpdb;	
             $this->option_tbl               = $this->wpdb->prefix . 'options';
+            $this->super_sticky_notes_tbl   = $this->wpdb->prefix . 'super_sticky_notes';
          
             $this->init();
         }
@@ -160,7 +161,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
             $status = (isset($_REQUEST['note']) && $_REQUEST['note'] == 1) ? 'active' : '';
 
-            $table_name = $wpdb->prefix . 'super_sticky_notes';
+            $table_name = $this->super_sticky_notes_tbl;
             $table_users = $wpdb->prefix . 'users';
             $ary = "SELECT ssn.*, u.`user_nicename`, DATE_FORMAT(ssn.`insert_time`,'%d/%m/%Y') AS `insert_time`, DATE_FORMAT(ssn.`note_repliedOn`,'%d/%m/%Y') AS note_repliedOn FROM $table_name ssn";
             $ary .= " LEFT JOIN $table_users u ON u.`ID`=ssn.`user_id`";
@@ -213,6 +214,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'nottopcolor' => (isset($noteoptions->topoption)) ? $noteoptions->topoption : '',
                     'notetextbg' => (isset($noteoptions->texteditorbg)) ? $noteoptions->texteditorbg : '',
                     'submitorreply' => $next_conv_alloweds,
+                    'priv' => __('Make Private', 'notes'),
                     'status' => $status,
                     'replay_date' => $replay_date,
                     'note_date' => $note_date,
@@ -228,11 +230,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
         // sql data save queries 
         function notes_save_create_db() {
+            $charset_collate = $this->wpdb->get_charset_collate();
 
-            global $wpdb;
-            $charset_collate = $wpdb->get_charset_collate();
-
-            $note_table = $wpdb->prefix . 'super_sticky_notes';
+            $note_table = $this->super_sticky_notes_tbl;
             $sql = "CREATE TABLE $note_table ( 
                 id INT(20) NOT NULL AUTO_INCREMENT,
                 user_id INT(20) NOT NULL,
@@ -249,6 +249,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 next_conv_allowed INT(5) NOT NULL,
                 parent_id INT(20) NOT NULL,
                 desable INT(5) NOT NULL DEFAULT 0,
+                priv INT(5) NOT NULL DEFAULT 0,
                 UNIQUE KEY id (id)
                 ) $charset_collate;";
         
@@ -271,11 +272,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         }
 
         function deletecommentajax(){
-            global $wpdb;
-
            $position = $_POST['position'];
-           $table_name = $wpdb->prefix . 'super_sticky_notes';
-           $wpdb->delete( $table_name, [ 'note_position' => $position] );
+           $table_name = $this->super_sticky_notes_tbl;
+           $this->wpdb->delete( $table_name, [ 'note_position' => $position] );
 
             echo json_encode(
                 array(
@@ -292,10 +291,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         * All this sold store in a option as json
         */
         function sendtonotesajax(){
-            //insert data start
-            global $wpdb;
-
-            //all values
+            /**
+             * insert data start
+             * all values
+            */
             $position = $_POST['position'];
             $current_page_id = $_POST['current_page_id'];
             $parentClass = $_POST['parentClass'];
@@ -303,13 +302,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $user_id = $_POST['user_id'];
             $text_content = $_POST['text_content'];
             $title = $_POST['title'];
+            $priv = $_POST['priv'];
             $next_conv_allowed = 0;
             // $data_id = $_POST['data_id'];
 
-            $table_name = $wpdb->prefix . 'super_sticky_notes';
+            $table_name = $this->super_sticky_notes_tbl;
 
             $j = '';
-               $insert = $wpdb->insert( 
+               $insert = $this->wpdb->insert( 
                     $table_name, 
                     array(
                         'user_id' => $user_id,
@@ -319,9 +319,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         'note_position' => $position,
                         'note_values' => $text_content,
                         'title' => $title,
-                        'next_conv_allowed' => $next_conv_allowed
+                        'next_conv_allowed' => $next_conv_allowed,
+                        'priv' => $priv
                     ),
-                    array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d')
+                    array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%d')
                 );
                 //insert data end
                 $j = ($insert) ? 'yes' : 'no';
@@ -343,21 +344,20 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
             // Check if we're inside the main loop in a single post page.
             //if ( is_single() && in_the_loop() && is_main_query() ) { c
-                global $wpdb;
                 $current_page_id = get_the_ID();
                 $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
-                $table_name = $wpdb->prefix . 'super_sticky_notes';
+                $table_name = $this->super_sticky_notes_tbl
                 
                
                 $show_values = array();
                 $approved = 'Approved';
 
-                $qrry = "SELECT `current_Class` FROM $table_name WHERE `page_id` = ".$current_page_id." AND `note_status` = '".$approved."'";
-                if(get_option( 'visitor_allowed', 0 ) != 1) $qrry .= " AND `user_id` = ".$user_id."";
+                $qrry = $this->wpdb->prepare("SELECT `current_Class` FROM $table_name WHERE `page_id` = %d AND `note_status` = '%s'", $current_page_id, $approved);
+                if(get_option( 'visitor_allowed', 0 ) != 1) $qrry .= $this->wpdb->prepare(" AND `user_id` = %d", $user_id);
                 $qrry .= " GROUP BY `current_Class`";
                 
 
-                $all_current_Class = $wpdb->get_results($qrry, OBJECT);
+                $all_current_Class = $this->wpdb->get_results($qrry, OBJECT);
 
 
                 
@@ -404,7 +404,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         $real_values = $elements->item(0)->nodeValue;
                         $approved = 'Approved';
 
-                        $qry = $wpdb->prepare("SELECT `note_position` FROM $table_name WHERE `current_Class` = %s AND `page_id` = %d AND `note_status` = %s", $classname, $current_page_id, $approved);
+                        $qry = $this->wpdb->prepare("SELECT `note_position` FROM $table_name WHERE `current_Class` = %s AND `page_id` = %d AND `note_status` = %s", $classname, $current_page_id, $approved);
                         if(get_option( 'visitor_allowed', 0 ) != 1) $qry .= " AND `user_id` = ".$user_id."";
                         $qry .= " GROUP BY `note_position` ORDER BY `note_position`";
 
@@ -616,31 +616,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         </thead>
                         <?php
                             global $wpdb;
-
-                            if (isset($_POST['search_value']))
-                            {   
-                                
-                                $search_value = $_POST['search_value'];
-                                $table_name = $wpdb->prefix . 'super_sticky_notes';
-                                $table_user = $wpdb->prefix . 'users';
-                                $qry = "SELECT * FROM $table_name ssn 
-                                LEFT JOIN $table_user u ON ssn.`user_id` = u.`ID`  
-                                WHERE ssn.`note_values` LIKE '%".$search_value."%' 
-                                OR ssn.`insert_time` LIKE '%".$search_value."%'
-                                OR ssn.`note_status` LIKE '%".$search_value."%'
-                                OR ssn.`note_reply` LIKE '%".$search_value."%' 
-                                OR u.`user_nicename` LIKE '%".$search_value."%' 
-                                ORDER BY ssn.`insert_time` DESC
-                                ";
-
-                                $all_valus_notes = $wpdb->get_results( $qry, OBJECT);
-                                $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
-                            }else{
-
                             $table_name = $wpdb->prefix . 'super_sticky_notes';
-                            $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name ssn ORDER BY ssn.`insert_time` DESC", OBJECT);                   
+                            $qry = $this->wpdb->prepare("SELECT * FROM $table_name ssn WHERE ssn.`priv` != %d ORDER BY ssn.`insert_time` DESC", 1);
+                            $all_valus_notes = $this->wpdb->get_results($qry, OBJECT);                   
                             $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
-                            } ?>
+                            ?>
 
                         <tbody>
                         <?php    foreach ($all_valus_notes as $note_values){ ?>
@@ -1068,6 +1048,3 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
     } // End Class
 } // End Class check if exist / not
-
-?>
-

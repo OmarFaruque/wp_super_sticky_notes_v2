@@ -95,7 +95,7 @@
     }
     
 
-    function ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url){
+    function ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url, priv){
 
         
         var current_page_id = notesAjax['current_page_id'];
@@ -114,6 +114,7 @@
             'text_content'            : text_content,
             'currentClass'            : currentClass,
             'title'                   : title,
+            'priv'                    : priv,
             'action'                  : 'sendtonotesajax' 
         };
 
@@ -211,7 +212,10 @@
                         text+='<div style="background-color:'+notesAjax.notetextbg+'" class="login_alert active"><div class="alert_inside">'+loginAllert+'</div></div>';
                     }   
 
-                    if(submitorreply !='') text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>'
+                    if(submitorreply !=''){
+                        text+='<label class="priv_label"><input type="checkbox" value="1" name="priv" class="prev_input"/>'+notesAjax.priv+'</label>';
+                        text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>';
+                    } 
                     text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
                         $(element).qtip().hide();
@@ -229,8 +233,9 @@
             events: {
                 hide: function(event, api) {
                     var text_content = jQuery(this).find('textarea').val();
+                    var priv = (jQuery(this).find('input[name="priv"]').is(':checked')) ? 1 : 0;
                     if(submitorreply != '' && text_content != ''){
-                        ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url);
+                        ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url, priv);
                     }
                 }
                 
