@@ -77,7 +77,15 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         * Admin Menu
         */
         function sticky_notes_admin_menu_function(){
-            add_menu_page( 'All Sticky Notes', 'All Sticky Notes', 'manage_options', 'sticky-notes-menu', array($this, 'submenufunction'), 'dashicons-list-view', 50 );
+
+
+            if( is_user_logged_in() ) {
+                $user = wp_get_current_user();
+                $roles = ( array ) $user->roles;
+                if (in_array('administrator', $roles)){
+                    add_menu_page( 'All Sticky Notes', 'All Sticky Notes', 'manage_options', 'sticky-notes-menu', array($this, 'submenufunction'), 'dashicons-list-view', 50 );
+                }
+            }
         }
 
         // Add Theme Options to Admin Bar Menu
@@ -365,10 +373,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         $all_current_Classs[] = $value->current_Class;
                     }
 
+                    libxml_use_internal_errors(true);
                     $content = '<div class="supper_sticky_note">' . $content . '</div>';
-
                     $DOM = new DOMDocument();
                     $DOM->loadHTML($content);
+                    libxml_clear_errors();
                     $list = $DOM->getElementsByTagName('p');
                     $i = 0;
 
@@ -491,7 +500,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         }
 
 
-        function submenufunction(){
+        public static function submenufunction(){
 
             global $wpdb;
             if (isset($_POST['status_message']))
