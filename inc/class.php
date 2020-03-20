@@ -77,8 +77,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         * Admin Menu
         */
         function sticky_notes_admin_menu_function(){
-
-
             if( is_user_logged_in() ) {
                 $user = wp_get_current_user();
                 $roles = ( array ) $user->roles;
