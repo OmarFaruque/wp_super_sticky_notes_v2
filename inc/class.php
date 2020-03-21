@@ -346,7 +346,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             //if ( is_single() && in_the_loop() && is_main_query() ) { c
                 $current_page_id = get_the_ID();
                 $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
-                $table_name = $this->super_sticky_notes_tbl
+                $table_name = $this->super_sticky_notes_tbl;
                 
                
                 $show_values = array();
@@ -409,9 +409,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         $qry .= " GROUP BY `note_position` ORDER BY `note_position`";
 
                         
+                        // echo 'qry: ' . $qry . '<br/>';
 
-
-                        $all_note_position = $wpdb->get_results($qry, OBJECT);
+                        $all_note_position = $this->wpdb->get_results($qry, OBJECT);
 
                         $all_note_positions = array();
                         foreach ($all_note_position as $note_position)
@@ -434,7 +434,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             if(get_option( 'visitor_allowed', 0 ) != 1) $ary .= " AND `user_id` = $user_id";
 
 
-                            $data_id = $wpdb->get_results($ary, OBJECT);
+                            $data_id = $this->wpdb->get_results($ary, OBJECT);
                             $data_ids = json_decode(json_encode($data_id), true);
                             
 
