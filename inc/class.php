@@ -22,6 +22,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $this->init();
         }
 
+        protected static $instance = NULL;
+        public static function get_instance()
+        {
+            if ( NULL === self::$instance )
+                self::$instance = new self;
+
+            return self::$instance;
+        }
         private function init(){
 
             //Backend Script
@@ -358,9 +366,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 
 
                 $all_current_Class = $this->wpdb->get_results($qrry, OBJECT);
-
-
-                
 
                 if(!isset($_REQUEST['note']) && $all_current_Class)
                 {
@@ -998,7 +1003,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     </li>
                 </ul>
             </div>
-                <div class="sticky-notes-user">
+                <div onClick="tstfunctn" class="sticky-notes-user">
                     <div class="innericon">
                         <img src="<?php echo $this->plugin_url; ?>/asset/css/images/speech-bubble-32.png" alt="icon">
                     </div>
@@ -1013,3 +1018,4 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
     } // End Class
 } // End Class check if exist / not
+?>
