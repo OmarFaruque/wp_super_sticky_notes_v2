@@ -165,14 +165,17 @@
         var current_page_url = notesAjax.current_page_url;
 
         // notesAjax.submitorreply[data_id] == 1
+        console.log(data_id);
         var yourcomment = '', 
         current_user_data = '',
         submitorreply = 'SUBMIT';
-        data_id.forEach(function(single_id){            
+        data_id.forEach(function(single_id){           
+            console.log('single priv: ' + notesAjax.notes[single_id].priv); 
             if(notesAjax.notes[single_id] != undefined){
-                yourcomment += ( notesAjax.notes[single_id].note_values != '' ) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
+                yourcomment += ( notesAjax.notes[single_id].note_values != '' && notesAjax.notes[single_id].priv == 0) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
                 yourcomment += ( notesAjax.notes[single_id].note_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply on '+notesAjax.notes[single_id].note_repliedOn+' :</strong> '+notesAjax.notes[single_id].note_reply+'</div>' : '';
-                if(notesAjax.notes[single_id].user_id == notesAjax.user_id) current_user_data = single_id;
+                yourcomment += ( notesAjax.notes[single_id].priv == 1 ) ? '<div class="user-priv" style="background-color:'+notesAjax.notetextbg+'"><strong>Private Note on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
+                if(notesAjax.notes[single_id].user_id == notesAjax.user_id && notesAjax.notes[single_id].priv == 0) current_user_data = single_id;
             }
         });
         

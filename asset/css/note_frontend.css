@@ -783,6 +783,14 @@ div.qtip-content button:focus {
     background-color: #FFF7C3;
     border-bottom: 1px solid #ddd;
 }
+
+.sticky-note-theme .user-priv {
+    font-size: 16px;
+    padding: 10px;
+    line-height: normal;
+    background-color:#ff00004f;
+    border-bottom: 1px solid #ddd;
+}
 .your-comment {
     border-bottom: 1px solid #ddd;
 }
