@@ -379,8 +379,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     $list = $DOM->getElementsByTagName('p');
                     $i = 0;
 
-
-
                     foreach($list as $p){
                         $p->setAttribute('class', 'p-class'.$i++);
                     }
@@ -394,13 +392,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                    
                     for ($x = 0; $x < count($all_current_Classs); $x++) {
 
-                     
-                        
                         $classname= $all_current_Classs[$x];
-                        
                         $elements = $xpath->query("//p[@class='$classname']");
-                       
-                        
                         $real_values = $elements->item(0)->nodeValue;
                         $approved = 'Approved';
 
@@ -412,9 +405,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         if(get_option( 'visitor_allowed', 0 ) != 1) $qry .= " AND `user_id` = ".$user_id."";
                         $qry .= " GROUP BY `note_position` ORDER BY `note_position`";
 
-                        
-                        // echo 'qry: ' . $qry . '<br/>';
-
                         $all_note_position = $this->wpdb->get_results($qry, OBJECT);
                         
                         $all_note_positions = array();
@@ -422,12 +412,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         { 
                             $all_note_positions[] = $note_position->note_position;
                         }
-                        
-                            // echo 'All note position<br/><pre>';
-                            // print_r($all_note_positions);
-                            // echo '</pre>';
-
-
 
                         $real_values_in_array = array();
                         $real_values_in_array = str_split($real_values, 1);
@@ -724,9 +708,9 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         </thead>
                         <tbody>
                         <?php
-                            $table_name = $wpdb->prefix . 'super_sticky_notes';
-
-                            $all_valus_notes = $wpdb->get_results("SELECT * FROM $table_name WHERE `note_status` = 'Approved' ", OBJECT);                   
+                            $table_name = $this->wpdb->prefix . 'super_sticky_notes';
+                            $qry = $this->wpdb->prepare("SELECT * FROM $table_name WHERE `note_status` = %s", 'Approved');
+                            $all_valus_notes = $wpdb->get_results($qry, OBJECT);                   
                             $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
                             
                             foreach ($all_valus_notes as $note_values){
@@ -823,7 +807,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <tbody>
                         <?php
                             $table_name = $this->super_sticky_notes_tbl;
-                            $all_valus_notes = $this->wpdb->get_results("SELECT * FROM $table_name WHERE `note_status` = 'Disapproved' ", OBJECT);                   
+                            $ary = $this->wpdb->prepare("SELECT * FROM $table_name WHERE `note_status` = %s", 'Disapproved');
+                            $all_valus_notes = $this->wpdb->get_results($ary, OBJECT);                   
                             $all_valus_notes = json_decode(json_encode($all_valus_notes), true);
                             
                             foreach ($all_valus_notes as $note_values){
