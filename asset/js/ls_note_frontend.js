@@ -219,8 +219,10 @@
                     }   
 
                     if(submitorreply !=''){
-                        text+='<label class="priv_label"><input type="checkbox" value="1" name="priv" class="prev_input"/>'+notesAjax.priv+'</label>';
-                        text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>';
+                        if(notesAjax.private_comment == 1){
+                            text+='<label class="priv_label"><input type="checkbox" value="1" name="priv" class="prev_input"/>'+notesAjax.priv+'</label>';
+                        }
+                            text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>';
                     } 
                     text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){

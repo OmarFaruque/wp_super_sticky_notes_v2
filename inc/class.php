@@ -222,6 +222,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'notetextbg' => (isset($noteoptions->texteditorbg)) ? $noteoptions->texteditorbg : '',
                     'submitorreply' => $next_conv_alloweds,
                     'priv' => __('Make Private', 'notes'),
+                    'private_comment' => get_option( 'private_comment', 1 ),
                     'status' => $status,
                     'replay_date' => $replay_date,
                     'note_date' => $note_date,
@@ -561,6 +562,12 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         add_option( $option_name, $visitor_allowed, $deprecated, $autoload );
                     }
             }
+
+            if(isset($_POST['private_comment'])){
+                update_option( 'private_comment', $_POST['private_comment'] );
+            }
+
+
             //if(isset($_POST['buttonposition'])) $this->updateSettings($_POST['buttonposition']);
 
             if(isset($_POST['allcommentpage'])) $this->updateSettings($_POST['allcommentpage']);
@@ -953,6 +960,17 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                 <?php $checked = ( get_option( 'visitor_allowed' ) == 1) ? 'checked' : ''; ?>
                                 <input type="hidden" name="visitor_allowed" value="0" />
                                 <input type="checkbox" class="checbox-visitor" onChange="submit();" name="visitor_allowed" value="1" <?php echo $checked; ?>/>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- Allow private comment -->
+                        <div class="visitor-conversation">
+                            <p style="margin-left:60px;"><?php _e('Allow Private Commment ?', 'wp_super_sticky_notes'); ?></p>
+                            <label class="switch">
+                                <?php $checked = ( get_option( 'private_comment' ) == 1) ? 'checked' : ''; ?>
+                                <input type="hidden" name="private_comment" value="0" />
+                                <input type="checkbox" class="checbox-visitor" onChange="submit();" name="private_comment" value="1" <?php echo $checked; ?>/>
                                 <span class="slider round"></span>
                             </label>
                         </div>
