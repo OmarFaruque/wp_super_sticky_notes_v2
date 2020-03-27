@@ -113,6 +113,7 @@
                     }
                     
                     foreach ($all_valus_notes as $note_values){
+                        $approve_msg = ($note_values['priv']) ? __('Private Commment', 'wp_super_sticky_notes') : __('Not Approved', 'wp_super_sticky_notes');
 
                 ?>
                 <tr>
@@ -128,7 +129,9 @@
                         <?php }elseif($note_values['note_status'] == 'Disapproved'){ ?> 
                             <div class="disapproved"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></div>
                         <?php }else{?> 
-                            <div class="disapproved"><?php _e('Not Approved', 'wp_super_sticky_notes'); ?></div>
+                            <div class="disapproved om">
+                                <?php echo $approve_msg; ?>
+                            </div>
                         <?php } ?>
                     </td>
                     <td>

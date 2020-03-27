@@ -227,6 +227,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'note_date' => $note_date,
                     'current_page_url' => $current_page_url,
                     'notes' => $notes,
+                    'priv_message' => __('Saved your comments list.', 'notes'),
                     'note_user' => $note_user,
                     'login_alert' => __('please login to comment', 'notes')
                 )
@@ -1003,7 +1004,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     </li>
                 </ul>
             </div>
-                <div onClick="tstfunctn" class="sticky-notes-user">
+                <div class="sticky-notes-user">
                     <div class="innericon">
                         <img src="<?php echo $this->plugin_url; ?>/asset/css/images/speech-bubble-32.png" alt="icon">
                     </div>

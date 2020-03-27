@@ -102,7 +102,7 @@
         var user_id = notesAjax['user_id'];
         var title = notesAjax['title'];
        
-        // console.log('data id: ' + data_id);
+        // console.log('priv: ' + priv);
 
         // if(typeof data_id == 'undefined') data_id = '';
         
@@ -119,6 +119,9 @@
         };
 
         // console.log(formdata);
+        if(priv){
+            jQuery('#successMsgSticky').find('h5').find('span').text(notesAjax.priv_message);
+        }
 
         jQuery.ajax({
            type : 'post',
@@ -164,13 +167,13 @@
         var status = (element.hasClass('old')) ? 'old' : 'new';
         var current_page_url = notesAjax.current_page_url;
 
-        // notesAjax.submitorreply[data_id] == 1
-        console.log(data_id);
+        // notesAjax.submitoreply[data_id] == 1
+        // console.log(data_id);
         var yourcomment = '', 
         current_user_data = '',
         submitorreply = 'SUBMIT';
         data_id.forEach(function(single_id){           
-            console.log('single priv: ' + notesAjax.notes[single_id].priv); 
+            // console.log('single priv: ' + notesAjax.notes[single_id].priv); 
             if(notesAjax.notes[single_id] != undefined){
                 yourcomment += ( notesAjax.notes[single_id].note_values != '' && notesAjax.notes[single_id].priv == 0) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
                 yourcomment += ( notesAjax.notes[single_id].note_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply on '+notesAjax.notes[single_id].note_repliedOn+' :</strong> '+notesAjax.notes[single_id].note_reply+'</div>' : '';
