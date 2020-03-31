@@ -178,8 +178,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $note_values = $this->wpdb->get_results($ary, OBJECT);  
 
            
-            
-
             $next_conv_allowed = $note_values;
 
             
@@ -197,8 +195,21 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $notes[$single->id] = $single;
             } 
             
-            
-            
+            /*
+            * Private Comments Allowed / not
+            */
+            $private_comment = false;
+            if(in_array($post->ID, get_option( 'allow_private_for_post', array() ))){
+                $private_comment = get_option( 'private_comment', 1 );
+            }
+            if(in_array('all', get_option( 'allow_private_for_post', array() ))){
+                $private_comment = get_option( 'private_comment', 1 );
+            }
+            $categorys = wp_get_post_categories( $post->ID );
+            $haveValue = array_intersect($categorys, get_option( 'allow_private_for_categori', array()));
+            if(count($haveValue) > 0){
+                $private_comment = get_option( 'private_comment', 1 );
+            }
 
             wp_enqueue_style( 'larasoftbd_NotetCSS', $this->plugin_url . 'asset/css/note_frontend.css', array(), true, 'all' );
             
@@ -222,7 +233,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'notetextbg' => (isset($noteoptions->texteditorbg)) ? $noteoptions->texteditorbg : '',
                     'submitorreply' => $next_conv_alloweds,
                     'priv' => __('Make Private', 'notes'),
-                    'private_comment' => get_option( 'private_comment', 1 ),
+                    'private_comment' => $private_comment,
                     'status' => $status,
                     'replay_date' => $replay_date,
                     'note_date' => $note_date,
@@ -441,6 +452,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
                             $data_idd = array();
                             $dataActive = '';
+                            $parent_class = '';
                             foreach($data_ids as $k => $singleid){
                                 array_push($data_idd, $singleid['id']);
                                 $parent_class = $singleid['parent_class'];
@@ -494,7 +506,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
         // update Settings
         public function updateSettings($data){
-            update_option( 'allcommentpage', $data );
+            foreach($data as $k => $sd) update_option( $k, $sd );
         }
 
 
@@ -570,22 +582,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
             //if(isset($_POST['buttonposition'])) $this->updateSettings($_POST['buttonposition']);
 
-            if(isset($_POST['allcommentpage'])) $this->updateSettings($_POST['allcommentpage']);
-
-            if (isset($_POST['buttonposition']))
-            {
-                $buttonposition = $_POST['buttonposition'];
-
-                    $option_name = 'buttonposition' ;
-
-                    if ( get_option( $option_name ) !== false ) {
-                        update_option( $option_name, $buttonposition );
-                    } else {
-                        $deprecated = null;
-                        $autoload = 'no';
-                        add_option( $option_name, $buttonposition, $deprecated, $autoload );
-                    }
-            }
+            if(isset($_POST['allcommentpage'])) $this->updateSettings($_POST);
 
             ?>
             <div class="super-sticky-notes">
@@ -931,7 +928,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                         <td class="text-left">
                                             <?php $allpages = get_all_page_ids(); ?>
                                             <select name="allcommentpage" class="form-control" id="allcommentpage">
-                                                <?php   foreach( $allpages as $sp):
+                                                <?php foreach( $allpages as $sp):
                                                     $selected = (get_option( 'allcommentpage') == $sp ) ? 'selected' : '';
                                                     ?>
                                                     <option <?php echo $selected; ?> value="<?php echo $sp; ?>"><?php echo get_the_title($sp); ?></option>
@@ -940,10 +937,59 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                             </select>
                                         </td>
                                     </tr>
+
+                                    <!-- Private comment on all pages and posts -->
+                                    <tr>
+                                        <th class="text-left"><?php _e('Allow private comment on pages & posts', 'wp_super_sticky_notes' ); ?></th>
+                                        <td class="text-left">
+                                            <?php 
+                                            $post_ids = get_posts(array(
+                                                'post_type' => 'any', //Your arguments
+                                                'posts_per_page'=> -1,
+                                                'fields'        => 'ids', // Only get post IDs
+                                            ));
+                                            $dbposts = get_option( 'allow_private_for_post' );
+                                            ?>
+                                            <select name="allow_private_for_post[]" multiple class="form-control" id="allow_private_for_post">
+                                                <option <?php echo (in_array('all', $dbposts)) ? 'selected':''; ?> value="all"><?php _e('All', 'wp_super_sticky_notes'); ?></option>
+                                                <?php foreach( $post_ids as $sp):
+                                                    $selected = ( in_array($sp, $dbposts) ) ? 'selected' : '';
+                                                    ?>
+                                                    <option <?php echo $selected; ?> value="<?php echo $sp; ?>"><?php echo get_the_title($sp); ?></option>
+                                                <?php endforeach; ?>
+
+                                            </select>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Private comment on all pages and posts -->
+                                    <tr>
+                                        <th class="text-left"><?php _e('Allow private comment on Categorie\'s', 'wp_super_sticky_notes' ); ?></th>
+                                        <td class="text-left">
+                                            <?php 
+                                            $cats = get_terms();
+                                            $dbcates = get_option( 'allow_private_for_categori');
+                                            ?>
+                                            <select name="allow_private_for_categori[]" multiple class="form-control" id="allow_private_for_categori">
+                                                <?php   foreach( $cats as $sc):
+                                                    if($sc->slug != 'uncategorized'):
+                                                    $selected = ( in_array($sc->term_id, $dbcates)) ? 'selected' : '';
+                                                    ?>
+                                                    <option <?php echo $selected; ?> value="<?php echo $sc->term_id; ?>"><?php echo $sc->name; ?></option>
+                                                    <?php endif; endforeach; ?>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                                    
+
                                     <tr>
                                             <th class="text-left"><?php _e('All Comment\'s Shortcode', 'wp_super_sticky_notes'); ?></th>
                                             <td class="text-left"><?php echo '[all-sticky-comments]'; ?></td>
 
+                                    </tr>
+                                    <tr>
+                                                        <td></td>
+                                                        <td class="text-left"><input type="submit" class="submit-settings button button-primary text-right" value="<?php _e('Submit', 'wp_super_sticky_notes'); ?>"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1030,11 +1076,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             </div>
         <?php
         }
-        
-                
-                
-
-
     } // End Class
 } // End Class check if exist / not
 ?>
