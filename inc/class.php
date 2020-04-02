@@ -373,11 +373,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $show_values = array();
                 $approved = 'Approved';
 
-                $qrry = $this->wpdb->prepare("SELECT `current_Class` FROM $table_name WHERE `page_id` = %d AND `note_status` = '%s'", $current_page_id, $approved);
+                $qrry = $this->wpdb->prepare("SELECT `current_Class` FROM $table_name WHERE `page_id` = %d AND (`note_status` = '%s' OR `priv` = %d)", $current_page_id, $approved, 1);
                 if(get_option( 'visitor_allowed', 0 ) != 1) $qrry .= $this->wpdb->prepare(" AND `user_id` = %d", $user_id);
                 $qrry .= " GROUP BY `current_Class`";
                 
-
+                
                 $all_current_Class = $this->wpdb->get_results($qrry, OBJECT);
 
                 if(!isset($_REQUEST['note']) && $all_current_Class)
@@ -417,8 +417,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
                         $qry = $this->wpdb->prepare("SELECT `note_position` 
                         FROM $table_name WHERE `current_Class` = %s 
-                        AND `page_id` = %d AND `note_status` = %s OR (`priv`=%d AND `user_id`=%d)", 
-                        $classname, $current_page_id, $approved, 1, $user_id);
+                        AND `page_id` = %d AND `note_status` = %s OR (`current_Class` = %s AND `priv`=%d AND `user_id`=%d)", 
+                        $classname, $current_page_id, $approved, $classname, 1, $user_id);
 
                         if(get_option( 'visitor_allowed', 0 ) != 1) $qry .= " AND `user_id` = ".$user_id."";
                         $qry .= " GROUP BY `note_position` ORDER BY `note_position`";
