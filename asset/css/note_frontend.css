@@ -975,3 +975,26 @@ label.priv_label input
 {
     margin-right:5px;
 }
+.wp-ssn-user-avater img {
+    float: left;
+    width: 36px;
+    height: 34px;
+    margin: 0;
+    text-align: center;
+    background-size: cover;
+    background-position: top center;
+    border-radius: 50%;
+}
+.wp-ssn-user-comment {
+    margin-left: 40px;
+}
+.sticky-note-theme .your-comment {
+    min-height: 50px !important;
+}
+.sticky-note-theme .admin-reply {
+    min-height: 50px !important;
+}
+.sticky-note-theme .alert_inside {
+    line-height: 20px;
+    margin: 0px 10px;
+}

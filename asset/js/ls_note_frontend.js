@@ -1,7 +1,7 @@
    jQuery(document).ready(function($){
     "use strict";
 
-
+ 
     /*
     * HIde user comment when click body
     */
@@ -166,17 +166,20 @@
         data_id = (typeof data_id != 'undefined') ? data_id.toString().split(',') : [];
         var status = (element.hasClass('old')) ? 'old' : 'new';
         var current_page_url = notesAjax.current_page_url;
-
+        // var note_admin_avatar_url = notesAjax.note_admin_avatar_url;
+        //console.log('single priv: ' +note_user_avatar_url);
         // notesAjax.submitoreply[data_id] == 1
-        // console.log(data_id);
+        console.log(data_id);
         var yourcomment = '', 
         current_user_data = '',
         submitorreply = 'SUBMIT';
         data_id.forEach(function(single_id){           
-            // console.log('single priv: ' + notesAjax.notes[single_id].priv); 
+            //console.log(notesAjax.note_user_avatar_url);
             if(notesAjax.notes[single_id] != undefined){
-                yourcomment += ( notesAjax.notes[single_id].note_values != '' && notesAjax.notes[single_id].priv == 0) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
-                yourcomment += ( notesAjax.notes[single_id].note_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><strong>Admin reply on '+notesAjax.notes[single_id].note_repliedOn+' :</strong> '+notesAjax.notes[single_id].note_reply+'</div>' : '';
+                console.log(notesAjax.notes[single_id].note_repliedOn);
+                console.log(notesAjax.note_user_avatar_url[notesAjax.notes[single_id].user_id]);
+                yourcomment += ( notesAjax.notes[single_id].note_values != '' && notesAjax.notes[single_id].priv == 0) ? '<div class="your-comment" style="background-color:'+notesAjax.notetextbg+'"><div class="wp-ssn-user-avater"><img src="'+notesAjax.note_user_avatar_url[notesAjax.notes[single_id].user_id]+'" /></div><div class="wp-ssn-user-comment"><strong>'+notesAjax.notes[single_id].user_nicename+' wrote on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div></div>' : '';
+                yourcomment += ( notesAjax.notes[single_id].note_reply != '' ) ? '<div class="admin-reply" style="background-color:'+notesAjax.notetextbg+'"><div class="wp-ssn-user-avater"><img src="'+notesAjax.note_admin_avatar_url+'" /></div><div class="wp-ssn-user-comment"><strong>Admin reply on '+notesAjax.notes[single_id].note_repliedOn+' :</strong> '+notesAjax.notes[single_id].note_reply+'</div></div>' : '';
                 yourcomment += ( notesAjax.notes[single_id].priv == 1 ) ? '<div class="user-priv" style="background-color:'+notesAjax.notetextbg+'"><strong>Private Note on '+notesAjax.notes[single_id].insert_time+' :</strong> '+notesAjax.notes[single_id].note_values+'</div>' : '';
                 if(notesAjax.notes[single_id].user_id == notesAjax.user_id && notesAjax.notes[single_id].priv == 0) current_user_data = single_id;
             }
@@ -213,16 +216,21 @@
                     +'</div>'
                     +yourcomment;
                     if(loginAllert == ''){
-                        text+='<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions.."></textarea>';
+                        if(notesAjax.user_restrict_alert == 'your_restricted'){
+                            text+='<div style="background-color:'+notesAjax.notetextbg+'" class="login_alert active"><div class="alert_inside">'+notesAjax.restrict_alert+'</div></div>';
+                        }else{
+                            text+='<textarea name="textarea" style="background-color:'+notesAjax.notetextbg+'" class="sticky-note-text-editor" placeholder="Ask Questions.."></textarea>';
+                        }
                     }else{
                         text+='<div style="background-color:'+notesAjax.notetextbg+'" class="login_alert active"><div class="alert_inside">'+loginAllert+'</div></div>';
                     }   
-
-                    if(submitorreply !=''){
-                        if(notesAjax.private_comment == 1){
-                            text+='<label class="priv_label"><input type="checkbox" value="1" name="priv" class="prev_input"/>'+notesAjax.priv+'</label>';
+                    if(notesAjax.user_restrict_alert != 'your_restricted'){
+                        if(submitorreply !=''){
+                            if(notesAjax.private_comment == 1){
+                                text+='<label class="priv_label"><input type="checkbox" value="1" name="priv" class="prev_input"/>'+notesAjax.priv+'</label>';
+                            }
+                                text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>';
                         }
-                            text+='<button class="note-reply" style="background-color:'+notesAjax.nottopcolor+'">'+submitorreply+'</button>';
                     } 
                     text+='</div>';
                     jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
@@ -271,42 +279,63 @@
             switch(classname){
                 case 'color-1 color-option':
                         $(".note-top-option").attr("style", "background-color:#F0B30C");
+                        $(".sticky-note-theme").attr("style", "background-color:#FFF7C3");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#FFF7C3");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#FFF7C3");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#FFF7C3");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#FFF7C3");
                         $("button.note-reply").attr("style", "background-color:#F0B30C");
                 break;
                 case 'color-2 color-option':
                         $(".note-top-option").attr("style", "background-color:#CEE9FD");
+                        $(".sticky-note-theme").attr("style", "background-color:#E2F0FF");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#E2F0FF");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#E2F0FF");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#E2F0FF");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#E2F0FF");
                         $("button.note-reply").attr("style", "background-color:#CEE9FD");
                 break;
                 case 'color-3 color-option':
                         $(".note-top-option").attr("style", "background-color:#B45FF6");
+                        $(".sticky-note-theme").attr("style", "background-color:#EFC9FF");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#EFC9FF");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#EFC9FF");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#EFC9FF");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#EFC9FF");
                         $("button.note-reply").attr("style", "background-color:#B45FF6");
                 break;
                 case 'color-4 color-option':
                         $(".note-top-option").attr("style", "background-color:#F87098");
+                        $(".sticky-note-theme").attr("style", "background-color:#FFC9DD");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#FFC9DD");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#FFC9DD");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#FFC9DD");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#FFC9DD");
                         $("button.note-reply").attr("style", "background-color:#F87098");
                 break;
                 case 'color-5 color-option':
                         $(".note-top-option").attr("style", "background-color:#3FD981");
+                        $(".sticky-note-theme").attr("style", "background-color:#DEF6D9");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#DEF6D9");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#DEF6D9");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#DEF6D9");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#DEF6D9");
                         $("button.note-reply").attr("style", "background-color:#3FD981");
                 break;
                 case 'color-6 color-option':
                         $(".note-top-option").attr("style", "background-color:#AEAEAE");
+                        $(".sticky-note-theme").attr("style", "background-color:#EBEBEB");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#EBEBEB");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#EBEBEB");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#EBEBEB");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#EBEBEB");
                         $("button.note-reply").attr("style", "background-color:#AEAEAE");
                 break;
                 case 'color-7 color-option':
                         $(".note-top-option").attr("style", "background-color:#686868");
+                        $(".sticky-note-theme").attr("style", "background-color:#5D5D5D;color:#ffff");
+                        $(".sticky-note-theme .login_alert").attr("style", "background-color:#5D5D5D;color:#ffff");
+                        $(".sticky-note-theme .your-comment").attr("style", "background-color:#5D5D5D;color:#ffff");
                         $(".sticky-note-theme .admin-reply").attr("style", "background-color:#5D5D5D;color:#ffff");
                         $("textarea.sticky-note-text-editor").attr("style", "background-color:#5D5D5D;color:#ffff");
                         $("button.note-reply").attr("style", "background-color:#686868");
@@ -324,7 +353,7 @@
             setCookie('noteoptions', noteOptions, 365);
 
         });
-
+        
 
         jQuery('.reply').click(function(){
             jQuery(this).next('.modal-overlay').addClass('active');

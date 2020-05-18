@@ -61,7 +61,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             //Store logininid to cookies
             add_action('init', array($this, 'storeloginidtocookies'));
 
-            //add filter
+            //add filter the content to append notes
             add_filter( 'the_content', array($this, 'filter_the_content_in_the_main_loop') );
 
             // Shortcode for frontend use
@@ -70,11 +70,15 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             //button
             add_action('wp_footer', array($this, 'user_button') );
 
-            
+            //avatar defaults
+            add_filter( 'avatar_defaults', array( $this, 'mytheme_default_avatar' ), 102, 1 );
+
         }
 
         /*
+        * its append add action line 62
         * Store Login-id to cookies
+        * its save user note colors. in his Browser
         */
         public function storeloginidtocookies(){
             if(is_user_logged_in()){
@@ -83,6 +87,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         }
 
         /*
+        * its append add action line 41
         * Admin Menu
         */
         function sticky_notes_admin_menu_function(){
@@ -95,13 +100,24 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             }
         }
 
+        // its append add action line 44
         // Add Theme Options to Admin Bar Menu
+        // https://heera.it/customize-admin-menu-bar-in-wordpress
         function sticky_notes_admin_bar_menu_function() {
+
             global $wp_admin_bar;
             global $post;
-            // echo 'pageid : ' . $post->ID;
+
             if(!isset($post->ID)){
                 return;
+            }
+            $restrict_ur_name = get_option( 'restrict_ur_name');
+            $restrict_ur_name = array_map('strtolower',$restrict_ur_name);
+            $user = wp_get_current_user();
+            $roles = ( array ) $user->roles;
+            $role = $roles[0];
+            if( in_array( $role ,$restrict_ur_name ) ){
+                return false;
             }
 
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
@@ -117,8 +133,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 'href'      => get_the_permalink( $post->ID ) . '?note=1',
               
             ) );
-
-          
             $wp_admin_bar->add_menu( array(
                 'parent'    => 'admin_bar_custom_menu',
                 'id'        => 'note_old_comments',
@@ -135,11 +149,13 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         }
 
         /*
+        * its append add action line 36
         * Appointment backend Script
         */
         function larasoftNote_backend_script($hook){
             if($hook != 'toplevel_page_sticky-notes-menu') return false;
             wp_enqueue_style( 'dataTableCSS', 'https://cdn.datatables.net/v/dt/dt-1.10.20/datatables.min.css', array(), true, 'all' );
+            wp_enqueue_style( 'fontawesomeCSS', 'https://use.fontawesome.com/releases/v5.4.1/css/all.css', array(), true, 'all' );
             wp_enqueue_style( 'larasoftNoteCSS', $this->plugin_url . 'asset/css/note_backend.css', array(), true, 'all' );
             
             wp_enqueue_script( 'dataTableJS', 'https://cdn.datatables.net/v/dt/dt-1.10.20/datatables.min.js', array(), true );
@@ -147,10 +163,18 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             //ajax
             wp_localize_script( 'larasoftNote', 'notesAjax', admin_url( 'admin-ajax.php' ));
 
+            //Core media script
+            wp_enqueue_media();
+
+            // Your custom js file
+            wp_register_script( 'media-lib-uploader-js', plugins_url( 'media-lib-uploader.js' , __FILE__ ), array('jquery') );
+
         }
 
         /*
+        * its append add action line 38
         * Appointment frontend Script
+        * And we send All note value in javascript from ajax.
         */
         function larasoftbd_Note_frontend_script(){
             global $post;
@@ -161,10 +185,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $noteoptions = json_decode(stripcslashes($_COOKIE['noteoptions']));
             endif;
 
-
+          
             $current_user_id = get_current_user_id();
             $current_page_id = $post->ID;
             $current_page_url = get_permalink( $current_page_id );
+            
 
             $status = (isset($_REQUEST['note']) && $_REQUEST['note'] == 1) ? 'active' : '';
 
@@ -187,14 +212,32 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $note_user = array();
             $notes = array();
             foreach($note_values as $single){
+               
                 $user = get_user_by('id', $single->user_id);
                 $next_conv_alloweds[$single->id] = $single->next_conv_allowed;
                 $note_date[$single->id] = date('d/m/Y', strtotime($single->insert_time));
                 $replay_date[$single->id] = date('d/m/Y', strtotime($single->note_repliedOn));
                 $note_user[$single->id] = $user->user_nicename;
                 $notes[$single->id] = $single;
-            } 
-            
+            }
+
+            $note_user_avatar_url = array();
+            $users = get_users( array( 'fields' => array( 'ID' ) ) );
+
+            foreach($users as $user_id){
+
+                $user_meta = get_userdata( $user_id->ID );
+                $user_roles = $user_meta->roles;
+                
+                if($user_roles[0] == 'administrator'){
+
+                    $note_admin_avatar_url = esc_url( get_avatar_url( $user_id->ID ) );
+                    
+                }
+
+                $note_user_avatar_url[$user_id->ID] = esc_url( get_avatar_url( $user_id->ID ) );
+            }
+
             /*
             * Private Comments Allowed / not
             */
@@ -211,14 +254,27 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $private_comment = get_option( 'private_comment', 1 );
             }
 
+
+            $restrict_ur_name = get_option( 'restrict_ur_name');
+            $user_restrict_alert = '';
+            $restrict_ur_name = array_map('strtolower',$restrict_ur_name);
+            if ( is_user_logged_in() ){
+                $user = wp_get_current_user();
+                $roles = ( array ) $user->roles;
+                $role = $roles[0];
+                if( in_array( $role ,$restrict_ur_name ) ){
+                    $user_restrict_alert = 'your_restricted';
+                }
+            }
+
+
             wp_enqueue_style( 'larasoftbd_NotetCSS', $this->plugin_url . 'asset/css/note_frontend.css', array(), true, 'all' );
             
             // Add the styles first, in the <head> (last parameter false, true = bottom of page!)
             wp_enqueue_style('qtip', $this->plugin_url . 'asset/qtip_asset/jquery.qtip.min.css', null, false, false);
 
             // Not using imagesLoaded? :( Okay... then this.
-            
-            
+            //we used qtip here.
             wp_enqueue_script('qtipjs', $this->plugin_url . 'asset/qtip_asset/jquery.qtip.min.js', array(), time(), true);
             wp_enqueue_script('larasoftbd_NoteJS', $this->plugin_url . 'asset/js/ls_note_frontend.js', array('jquery'), time(), true);
             //ajax
@@ -241,14 +297,19 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     'notes' => $notes,
                     'priv_message' => __('Saved your comments list.', 'notes'),
                     'note_user' => $note_user,
-                    'login_alert' => __('please login to comment', 'notes')
+                    'note_user_avatar_url' => $note_user_avatar_url,
+                    'note_admin_avatar_url' => $note_admin_avatar_url,
+                    'login_alert' => __('Please login to comment', 'notes'),
+                    'restrict_alert' => __('Sorry, the administrator did not allow you to comment.', 'notes'),
+                    'user_restrict_alert' => $user_restrict_alert
                 )
             );
             
         }
 
-
+        // its append add action line 59
         // sql data save queries 
+        // all note and our all data save this db.
         function notes_save_create_db() {
             $charset_collate = $this->wpdb->get_charset_collate();
 
@@ -279,6 +340,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             // DROP TABLE `gym_super_sticky_notes`
         }
 
+        // its append add action line 50
+        // ajax get all comment page id save
         function allcommentajax(){
             $page_id = get_option( 'allcommentpage', 1 );
             $page_url = get_permalink( $page_id );
@@ -291,6 +354,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             die();           
         }
 
+        // its append add action line 54
+        // delete comment ajax
         function deletecommentajax(){
            $position = $_POST['position'];
            $table_name = $this->super_sticky_notes_tbl;
@@ -306,11 +371,20 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         }
 
         /*
+        * its append add action line 46
         * Send Code as Sold
         * This action work when hover on a item from New Code
         * All this sold store in a option as json
+        * get ajax note all data and save 
         */
         function sendtonotesajax(){
+            $auto_approving_ur_name = get_option( 'auto_approving_ur_name');
+            $auto_approving_ur_name = array_map('strtolower',$auto_approving_ur_name);
+            $user = wp_get_current_user();
+            $roles = ( array ) $user->roles;
+            $role = $roles[0];
+            $status = ( in_array( $role ,$auto_approving_ur_name ) ) ? 'Approved' : '';
+
             /**
              * insert data start
              * all values
@@ -324,7 +398,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $title = $_POST['title'];
             $priv = $_POST['priv'];
             $next_conv_allowed = 0;
-            // $data_id = $_POST['data_id'];
 
             $table_name = $this->super_sticky_notes_tbl;
 
@@ -340,9 +413,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         'note_values' => $text_content,
                         'title' => $title,
                         'next_conv_allowed' => $next_conv_allowed,
-                        'priv' => $priv
+                        'priv' => $priv,
+                        'note_status' => $status
                     ),
-                    array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%d')
+                    array('%d', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%d', '%s')
                 );
                 //insert data end
                 $j = ($insert) ? 'yes' : 'no';
@@ -357,14 +431,18 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
         }
         
-        
+        /**
+         * its append add filter line 65
+         * filter all content and Insert all note in content
+         * we filter all content and gave names one by one p-class0
+         * https://www.php.net/manual/en/domdocument.loadhtml.php
+         * then we append all note in the content
+         * https://www.php.net/manual/en/function.libxml-use-internal-errors.php
+        */
         function filter_the_content_in_the_main_loop( $content ) {
-            // if(get_option( 'visitor_allowed', 1 ) == 0){
-            //     return $content;
-            // }
+
             $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
-            // Check if we're inside the main loop in a single post page.
-            //if ( is_single() && in_the_loop() && is_main_query() ) { c
+            
                 $current_page_id = get_the_ID();
                 $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
                 $table_name = $this->super_sticky_notes_tbl;
@@ -383,7 +461,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
 
                 if(!isset($_REQUEST['note']) && $all_current_Class)
                 {
-                    // // echo 'yes';
+
                     $all_current_Classs = array();
                     foreach ($all_current_Class as $value)
                     { 
@@ -469,7 +547,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             $my_html++;
                         }
                         $actual_value_texts = implode( $actual_value_text );
-
                         // $show_values[$classname] = $actual_value_texts;
                         $elements->item(0)->nodeValue = '';
                         $f = $doc->createDocumentFragment();
@@ -497,20 +574,32 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     $content = $DOM;
                     
                 }
-            //}
         
             return $content;
         }
 
+        // its append line 677
         // update Settings
         public function updateSettings($data){
             foreach($data as $k => $sd) update_option( $k, $sd );
         }
 
-
+        /**
+         * its append add menu line 98
+         * submenu function
+         * its admin side function
+         * admin control section.. admin reply section.
+        */
         public static function submenufunction(){
+            
+            if (isset($_POST['wp_ssn_user_avatar'])){
+
+                $icon = $_POST['wp_ssn_user_avatar'];
+                update_option( 'wp_ssn_user_avatar', $icon);
+            }
 
             global $wpdb;
+
             if (isset($_POST['status_message']))
             {
                 $status = $_POST['status'];
@@ -577,8 +666,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 update_option( 'private_comment', $_POST['private_comment'] );
             }
 
-
-            //if(isset($_POST['buttonposition'])) $this->updateSettings($_POST['buttonposition']);
+            //submit auto approving user roles name code 
+            if(isset($_POST['auto_approving_ur_name'])  ){
+                update_option( 'auto_approving_ur_name', $_POST['auto_approving_ur_name'] );
+            }
+            //submit restrict user roles name code 
+            if(isset($_POST['restrict_ur_name'])  ){
+                update_option( 'restrict_ur_name', $_POST['restrict_ur_name'] );
+            }
 
             if(isset($_POST['allcommentpage'])) $this->updateSettings($_POST);
 
@@ -592,12 +687,6 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         <button class="tablinks" onclick="openTab(event, 'disapproved')"><?php _e('Disapproved', 'wp_super_sticky_notes'); ?></button><div class="tab-icons"></div>
                         <button class="tablinks" onclick="openTab(event, 'settings')"><?php _e('Settings', 'wp_super_sticky_notes'); ?></button>
                     </div>
-                    <!-- <div class="tab-search">
-                        <form method="POST">
-                            <input type="text" name="search_value" placeholder="Search here..." required>
-                            <button class="tab-search-button" type="submit"><?php // _e('Search', 'sticky'); ?></button>
-                        </form>
-                    </div> -->
                 </div>
 
                 <div id="all" class="tabcontent" style="display:block;" >
@@ -624,7 +713,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             ?>
 
                         <tbody>
-                        <?php    foreach ($all_valus_notes as $note_values){ ?>
+                        <?php foreach ($all_valus_notes as $note_values){ ?>
                        <tr>
                             <td><?php $author_obj = get_user_by('id', $note_values['user_id']); echo $author_obj->data->user_nicename; ?></td>
                             <td><?php echo $note_values['note_values']; ?></td>
@@ -947,6 +1036,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                                 'fields'        => 'ids', // Only get post IDs
                                             ));
                                             $dbposts = get_option( 'allow_private_for_post' );
+
                                             ?>
                                             <select name="allow_private_for_post[]" multiple class="form-control" id="allow_private_for_post">
                                                 <option <?php echo (in_array('all', $dbposts)) ? 'selected':''; ?> value="all"><?php _e('All', 'wp_super_sticky_notes'); ?></option>
@@ -978,23 +1068,98 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                             </select>
                                         </td>
                                     </tr>
-                                                    
-
+                                    <!-- Admin can tick for auto-approving comments for some roles  -->
                                     <tr>
-                                            <th class="text-left"><?php _e('All Comment\'s Shortcode', 'wp_super_sticky_notes'); ?></th>
-                                            <td class="text-left"><?php echo '[all-sticky-comments]'; ?></td>
+                                        <th class="text-left"><?php _e('Allow auto-approving comments for user roles', 'wp_super_sticky_notes' ); ?></th>
+                                        <td class="text-left">
+                                            <div class="wssn-ks-cb-div">
+                                                <ul class="ks-cboxtags">
+                                                    <li>
+                                                        <input type="checkbox" class="wssn-hidden" name="auto_approving_ur_name[]" id="checkbox" value="checkbox" checked/>
+                                                    </li>
+                                                    <?php 
+                                                    global $wp_roles;
+                                                    $roles = $wp_roles->get_names();
+                                                    $auto_approving_ur_name = '';
+                                                    if ( get_option( 'auto_approving_ur_name' ) !== false ) {
+                                                        $auto_approving_ur_name = get_option( 'auto_approving_ur_name');
+                                                    }
+                                                    foreach($roles as $role) {
 
+                                                        $checked = ( in_array( $role ,$auto_approving_ur_name ) ) ? 'checked' : '';
+                                                    ?>
+                                                        <li>
+                                                            <input type="checkbox" name="auto_approving_ur_name[]" id="checkbox<?php echo $role ?>" value="<?php echo $role ?>" <?php echo $checked; ?>/>
+                                                            <label for="checkbox<?php echo $role ?>"><?php echo $role ?></label>
+                                                        </li>
+                                                    <?php } ?>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Admin can restrict comments to only one or several roles  automatically -->
+                                    <tr>
+                                        <th class="text-left"><?php _e('Restrict comments for user roles', 'wp_super_sticky_notes' ); ?></th>
+                                        <td class="text-left">
+                                            <div class="wssn-ks-cb-div">
+                                                <ul class="ks-cboxtags">
+                                                    <li>
+                                                        <input type="checkbox" class="wssn-hidden" name="restrict_ur_name[]" id="checkboxx" value="checkbox" checked/>
+                                                    </li>
+                                                    <?php 
+                                                    global $wp_roles;
+                                                    $roles = $wp_roles->get_names();
+                                                    $restrict_ur_name = '';
+                                                    if ( get_option( 'restrict_ur_name' ) !== false ) {
+                                                        $restrict_ur_name = get_option( 'restrict_ur_name');
+                                                    }
+                                                    foreach($roles as $role) {
+
+                                                        $checked = ( in_array( $role ,$restrict_ur_name ) ) ? 'checked' : '';
+                                                        
+                                                    ?>
+                                                        <li>
+                                                            <input type="checkbox" name="restrict_ur_name[]" id="checkboxx<?php echo $role ?>" value="<?php echo $role ?>" <?php echo $checked; ?>/>
+                                                            <label for="checkboxx<?php echo $role ?>"><?php echo $role ?></label>
+                                                        </li>
+                                                    <?php } ?>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr> 
+                                        <th class="text-left"><?php _e('Upload user default avatar', 'wp_super_sticky_notes'); ?></th>
+                                        <td class="text-left">
+                                            <!-- <form method = "post"> -->
+                                                <?php 
+                                                if ( get_option( 'wp_ssn_user_avatar' ) !== false ){
+                                                    $wp_ssn_user_avatar = get_option('wp_ssn_user_avatar');
+                                                }else{
+                                                    $wp_ssn_user_avatar = $this->plugin_url . 'asset/css/images/user_avatar.png';
+                                                }
+                                                    echo '<img src="'. $wp_ssn_user_avatar .'" height="42" width="42">';
+                                                    echo '<input type="hidden" id="image-url" type="text" name="wp_ssn_user_avatar" value="'. $wp_ssn_user_avatar .'"/>';
+                                                ?>
+
+                                                <input id="upload-button" type="button" class="button wp-ssn-button" value="Upload Image" />
+                                                <!-- <input type="submit" class="image_up_b" value="Submit" />
+                                            </form> -->
+                                            <div class="wp-ssn-note"><?php echo sprintf('Click <a href="%s">here</a> for Select your default avatar.', admin_url( '/options-discussion.php' )) ?></div>
+                                        </td>
                                     </tr>
                                     <tr>
-                                                        <td></td>
-                                                        <td class="text-left"><input type="submit" class="submit-settings button button-primary text-right" value="<?php _e('Submit', 'wp_super_sticky_notes'); ?>"></td>
+                                        <th class="text-left"><?php _e('All Comment\'s Shortcode', 'wp_super_sticky_notes'); ?></th>
+                                        <td class="text-left"><?php echo '[all-sticky-comments]'; ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td class="text-left"><input type="submit" class="submit-settings button button-primary text-right" value="<?php _e('Submit', 'wp_super_sticky_notes'); ?>"></td>
                                     </tr>
                                 </tbody>
                             </table>
                         </form>
                     </div>
                 </div>
-
 
                 <div class="visitors-conversation">
                     <form method="POST">
@@ -1026,6 +1191,13 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             <?php
         } // Admin page
 
+        /**
+         * its append add shortcode line 68
+         * User question lists. user can see his all notes
+         * its user side function
+         * its append sortcode 
+         * https://developer.wordpress.org/reference/functions/add_shortcode/
+        */
         public function larasoftbd_question_lists_shortcode(){
             ob_start();
             require_once($this->plugin_dir . 'template/user_question_lists.php');
@@ -1034,10 +1206,26 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             wp_reset_query();
         }
 
+        /**
+         * its append add action line 71
+         * User add note button function
+         * This function only works when the user is logged in and the admin gives him permission
+         * its append sortcode 
+         * https://wordpress.stackexchange.com/questions/191523/my-add-action-wp-footer-method-is-not-calling
+        */
         function user_button(){
             if(!is_user_logged_in()){
                 return false;
             }
+            $restrict_ur_name = get_option( 'restrict_ur_name');
+            $restrict_ur_name = array_map('strtolower',$restrict_ur_name);
+            $user = wp_get_current_user();
+            $roles = ( array ) $user->roles;
+            $role = $roles[0];
+            if( in_array( $role ,$restrict_ur_name ) ){
+                return false;
+            }
+
             global $post;
             $oldCommentUrl = get_the_permalink( get_option( 'allcommentpage', 1 ) );
             $button_position_class = get_option( 'buttonposition' );
@@ -1046,34 +1234,54 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             <div id="successMsgSticky" style="display:none;">
                 <div class="messageInner">
                     <h5 class="text-center w-100">
-                        <span><?php _e('Thank you! Your comments submitted for moderation.', 'sticky_none'); ?></span>
+                        <span><?php _e('Thank you! Your comments submitted for moderation.', 'wp_super_sticky_notes'); ?></span>
                     </h5>
                 </div>
             </div>
+
             <div class="sticky_note-user-button <?php echo $button_position_class;?>">
-            <div id="stickeyItems">
-                <ul class="user-button-ul" style="display:none">
-                    <li class="deleteCo">
-                    <span class="userHideSticky">
-                        <img src="<?php echo $this->plugin_url; ?>/asset/css/images/close.png" alt="Close Icon">
-                    </span>
-                    </li>
-                    <li class="note-new-comment">
-                        <a class="commentLink" href="<?php echo get_the_permalink( $post->ID ) . '?note=1' ?>"><?php _e('New Comment', 'wp_super_sticky_notes'); ?></a>
-                    </li>
-                    <li class="note-old-comments">
-                        <a class="commentLink" href="<?php echo $oldCommentUrl; ?>"><?php _e('Old Comment', 'wp_super_sticky_notes'); ?></a>
-                    </li>
-                </ul>
-            </div>
+                <div id="stickeyItems">
+                    <ul class="user-button-ul" style="display:none">
+                        <li class="deleteCo">
+                        <span class="userHideSticky">
+                            <img src="<?php echo $this->plugin_url; ?>/asset/css/images/close.png" alt="Close Icon">
+                        </span>
+                        </li>
+                        <li class="note-new-comment">
+                            <a class="commentLink" href="<?php echo get_the_permalink( $post->ID ) . '?note=1' ?>"><?php _e('New Comment', 'wp_super_sticky_notes'); ?></a>
+                        </li>
+                        <li class="note-old-comments">
+                            <a class="commentLink" href="<?php echo $oldCommentUrl; ?>"><?php _e('Old Comment', 'wp_super_sticky_notes'); ?></a>
+                        </li>
+                    </ul>
+                </div>
                 <div class="sticky-notes-user">
                     <div class="innericon">
                         <img src="<?php echo $this->plugin_url; ?>/asset/css/images/speech-bubble-32.png" alt="icon">
                     </div>
                 </div>
             </div>
+
         <?php
         }
+
+        
+        /**
+         * its append add filter line 74
+         * User defaults avatar change
+         * This function allows the user defaults avatar to customize
+         * https://wordpress.stackexchange.com/questions/107915/change-the-default-avatar-admin-option-via-functions-php
+        */
+        function mytheme_default_avatar( $avatar_defaults ) 
+        {
+
+            $myavatar = get_option('wp_ssn_user_avatar');
+            $avatar_defaults[$myavatar] = "Crunchify Avatar";
+            return $avatar_defaults;
+            
+        }
+
+        
     } // End Class
 } // End Class check if exist / not
 ?>
