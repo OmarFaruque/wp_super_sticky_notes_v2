@@ -469,7 +469,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                     }
 
                     libxml_use_internal_errors(true);
-                    $content = '<div class="supper_sticky_note">' . $content . '</div>';
+                    $content = '
+                    <meta charset="UTF-8">
+                    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+                    <div class="supper_sticky_note">' . $content . '</div>';
                     $DOM = new DOMDocument();
                     $DOM->loadHTML($content);
                     libxml_clear_errors();
@@ -554,6 +557,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                         $elements->item(0)->appendChild($f);
                     }
 
+                    //$DOM = utf8_decode($doc->saveHTML());
+                    //$DOM = $doc->saveHTML($doc->documentElement); 
                     $DOM=$doc->saveHTML();
                     $content = $DOM;
 
@@ -561,7 +566,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 }
                 else{
                     libxml_use_internal_errors(true);
-                    $content = '<div class="supper_sticky_note">' . $content . '</div>';
+                    $content = '
+                    <meta charset="UTF-8">
+                    <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+                    <div class="supper_sticky_note">' . $content . '</div>';
                     $DOM = new DOMDocument();
                     $DOM->loadHTML($content);
                     libxml_clear_errors();

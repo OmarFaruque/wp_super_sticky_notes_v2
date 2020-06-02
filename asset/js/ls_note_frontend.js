@@ -251,7 +251,9 @@
                     var text_content = jQuery(this).find('textarea').val();
                     var priv = (jQuery(this).find('input[name="priv"]').is(':checked')) ? 1 : 0;
                     if(submitorreply != '' && text_content != ''){
-                        ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url, priv);
+                        jQuery(document.body).on('click', 'button.note-reply, div.note-exest-button', function(){
+                            ajaxfuncton(parntclass, currentClass, text_content, position, data_id, current_page_url, priv);
+                        });
                     }
                 }
                 
