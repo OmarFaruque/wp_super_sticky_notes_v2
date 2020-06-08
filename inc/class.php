@@ -40,7 +40,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             //Add Menu Options
             add_action('admin_menu', array($this, 'sticky_notes_admin_menu_function'));
 
-            // Add Theme Options to Admin Bar
+            /* Add Theme Options to Admin Bar */ 
             add_action('admin_bar_menu', array($this, 'sticky_notes_admin_bar_menu_function'), 55);
 
             /* Send item field */ 
@@ -111,7 +111,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             if(!isset($post->ID)){
                 return;
             }
+
+            $restrict_ur_name = array();
+            if ( get_option( 'restrict_ur_name') !== false ) {
             $restrict_ur_name = get_option( 'restrict_ur_name');
+            }
             $restrict_ur_name = array_map('strtolower',$restrict_ur_name);
             $user = wp_get_current_user();
             $roles = ( array ) $user->roles;
@@ -200,7 +204,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $ary .= $this->wpdb->prepare(" WHERE ssn.`page_id` = %d", $current_page_id);
             if(get_option( 'visitor_allowed', 0 ) != 1) $ary .= $this->wpdb->prepare(" AND `user_id` = %s", $current_user_id);
 
-            $note_values = $this->wpdb->get_results($ary, OBJECT);  
+            $note_values = $this->wpdb->get_results($ary, OBJECT);
+             
+            // $page_users = $this->$wpdb->get_results( "SELECT `user_id` FROM $table_name WHERE `page_id` = $current_page_id",  OBJECT);
+
 
            
             $next_conv_allowed = $note_values;
@@ -211,6 +218,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             $replay_date = array();
             $note_user = array();
             $notes = array();
+            $note_user_avatar_url = array();
             foreach($note_values as $single){
                
                 $user = get_user_by('id', $single->user_id);
@@ -219,24 +227,14 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $replay_date[$single->id] = date('d/m/Y', strtotime($single->note_repliedOn));
                 $note_user[$single->id] = $user->user_nicename;
                 $notes[$single->id] = $single;
+                $note_user_avatar_url[$single->user_id] = esc_url( get_avatar_url( $single->user_id ) );
             }
 
-            $note_user_avatar_url = array();
-            $users = get_users( array( 'fields' => array( 'ID' ) ) );
-
-            foreach($users as $user_id){
-
-                $user_meta = get_userdata( $user_id->ID );
-                $user_roles = $user_meta->roles;
-                
-                if($user_roles[0] == 'administrator'){
-
-                    $note_admin_avatar_url = esc_url( get_avatar_url( $user_id->ID ) );
-                    
-                }
-
-                $note_user_avatar_url[$user_id->ID] = esc_url( get_avatar_url( $user_id->ID ) );
+            $note_admin_avatar_url = '';
+            if ( get_option( 'wp_ssn_note_admin_avatar') !== false ) {
+                $note_admin_avatar_url = get_option('wp_ssn_note_admin_avatar');
             }
+            //echo 'wp_ssn_note_admin_avatar : ' . $note_admin_avatar_url;
 
             /*
             * Private Comments Allowed / not
@@ -254,10 +252,13 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                 $private_comment = get_option( 'private_comment', 1 );
             }
 
-
-            $restrict_ur_name = get_option( 'restrict_ur_name');
+            $restrict_ur_name = array();
+            if ( get_option( 'restrict_ur_name') !== false ) {
+                $restrict_ur_name = get_option( 'restrict_ur_name');
+            }
             $user_restrict_alert = '';
             $restrict_ur_name = array_map('strtolower',$restrict_ur_name);
+
             if ( is_user_logged_in() ){
                 $user = wp_get_current_user();
                 $roles = ( array ) $user->roles;
@@ -378,7 +379,11 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         * get ajax note all data and save 
         */
         function sendtonotesajax(){
-            $auto_approving_ur_name = get_option( 'auto_approving_ur_name');
+
+            $auto_approving_ur_name = array();
+            if ( get_option( 'auto_approving_ur_name') !== false ) {
+                $auto_approving_ur_name = get_option( 'auto_approving_ur_name');
+            }
             $auto_approving_ur_name = array_map('strtolower',$auto_approving_ur_name);
             $user = wp_get_current_user();
             $roles = ( array ) $user->roles;
@@ -602,9 +607,16 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             
             if (isset($_POST['wp_ssn_user_avatar'])){
 
-                $icon = $_POST['wp_ssn_user_avatar'];
-                update_option( 'wp_ssn_user_avatar', $icon);
+                $icon_user = $_POST['wp_ssn_user_avatar'];
+                update_option( 'wp_ssn_user_avatar', $icon_user);
             }
+            if (isset($_POST['wp_ssn_note_admin_avatar'])){
+
+                $icon_admin = $_POST['wp_ssn_note_admin_avatar'];
+                update_option( 'wp_ssn_note_admin_avatar', $icon_admin);
+            }
+
+            
 
             global $wpdb;
 
@@ -1088,7 +1100,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                                     <?php 
                                                     global $wp_roles;
                                                     $roles = $wp_roles->get_names();
-                                                    $auto_approving_ur_name = '';
+                                                    $auto_approving_ur_name = array();
                                                     if ( get_option( 'auto_approving_ur_name' ) !== false ) {
                                                         $auto_approving_ur_name = get_option( 'auto_approving_ur_name');
                                                     }
@@ -1117,7 +1129,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                                     <?php 
                                                     global $wp_roles;
                                                     $roles = $wp_roles->get_names();
-                                                    $restrict_ur_name = '';
+                                                    $restrict_ur_name = array();
                                                     if ( get_option( 'restrict_ur_name' ) !== false ) {
                                                         $restrict_ur_name = get_option( 'restrict_ur_name');
                                                     }
@@ -1136,6 +1148,22 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                         </td>
                                     </tr>
                                     <tr> 
+                                        <th class="text-left"><?php _e('Upload note admin avatar', 'wp_super_sticky_notes'); ?></th>
+                                        <td class="text-left">
+                                            <?php 
+                                            if ( get_option( 'wp_ssn_note_admin_avatar' ) !== false ){
+                                                $wp_ssn_note_admin_avatar = get_option('wp_ssn_note_admin_avatar');
+                                            }else{
+                                                $wp_ssn_note_admin_avatar = $this->plugin_url . 'asset/css/images/user_avatar.png';
+                                            }
+                                                echo '<img src="'. $wp_ssn_note_admin_avatar .'" height="42" width="42">';
+                                                echo '<input type="hidden" id="image-admin-url" type="text" name="wp_ssn_note_admin_avatar" value="'. $wp_ssn_note_admin_avatar .'"/>';
+                                            ?>
+
+                                            <input id="upload-admin-button" type="button" class="button wp-ssn-button" value="Upload Image" />
+                                        </td>
+                                    </tr>
+                                    <tr> 
                                         <th class="text-left"><?php _e('Upload user default avatar', 'wp_super_sticky_notes'); ?></th>
                                         <td class="text-left">
                                             <!-- <form method = "post"> -->
@@ -1146,7 +1174,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                                                     $wp_ssn_user_avatar = $this->plugin_url . 'asset/css/images/user_avatar.png';
                                                 }
                                                     echo '<img src="'. $wp_ssn_user_avatar .'" height="42" width="42">';
-                                                    echo '<input type="hidden" id="image-url" type="text" name="wp_ssn_user_avatar" value="'. $wp_ssn_user_avatar .'"/>';
+                                                    echo '<input type="hidden" id="image-user-url" type="text" name="wp_ssn_user_avatar" value="'. $wp_ssn_user_avatar .'"/>';
                                                 ?>
 
                                                 <input id="upload-button" type="button" class="button wp-ssn-button" value="Upload Image" />
@@ -1225,7 +1253,10 @@ if (!class_exists('wp_super_sticky_notesClass')) {
             if(!is_user_logged_in()){
                 return false;
             }
-            $restrict_ur_name = get_option( 'restrict_ur_name');
+            $restrict_ur_name = array();
+            if ( get_option( 'restrict_ur_name') !== false ) {
+                $restrict_ur_name = get_option( 'restrict_ur_name');
+            }
             $restrict_ur_name = array_map('strtolower',$restrict_ur_name);
             $user = wp_get_current_user();
             $roles = ( array ) $user->roles;
