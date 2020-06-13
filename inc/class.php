@@ -447,6 +447,8 @@ if (!class_exists('wp_super_sticky_notesClass')) {
         function filter_the_content_in_the_main_loop( $content ) {
 
             $content = preg_replace("/<br\W*?\/>/", "<div class='br-replace'></div><p>", $content);
+            $content = preg_replace("/<b\W*?\/>/", "<div class='b-replace'></div><p>", $content);
+            $content = preg_replace('/<td.*?>(.*?)<\/td>/i', '<td><p>$1</td></p>', $content);
             
                 $current_page_id = get_the_ID();
                 $user_id = (isset($_COOKIE['sticky_id'])) ? $_COOKIE['sticky_id'] :  get_current_user_id();
@@ -817,7 +819,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             <th><?php _e('Asked Question', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Page/Post', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('AskedOn', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Status', 'wp_super_sticky_notes'); ?></th>
+                            <th><?php _e('Disapprove Comment', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Action', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Reply', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('RepliedOn', 'wp_super_sticky_notes'); ?></th>
@@ -915,7 +917,7 @@ if (!class_exists('wp_super_sticky_notesClass')) {
                             <th><?php _e('Asked Question', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Page/Post', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('AskedOn', 'wp_super_sticky_notes'); ?></th>
-                            <th><?php _e('Status', 'wp_super_sticky_notes'); ?></th>
+                            <th><?php _e('Approve Comment', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Action', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('Reply', 'wp_super_sticky_notes'); ?></th>
                             <th><?php _e('RepliedOn', 'wp_super_sticky_notes'); ?></th>
